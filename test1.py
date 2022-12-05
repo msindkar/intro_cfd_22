@@ -714,12 +714,37 @@ def Compute_Artificial_Viscosity():
     lambda_x = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 1]) + np.sqrt(uvel2 + four*beta2))
     lambda_y = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 2]) + np.sqrt(vvel2 + four*beta2))
     # -----
+    # loop sets interior artviscs, points near boundary need separate treatment
     for j in range(2, jmax - 3, 1):
         for i in range(2, imax - 3, 1):
             d4pdx4 = (u[i + 2, j, 0] - u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
             d4pdy4 = (u[i, j + 2, 0] - u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
             artviscx[i, j] = -((lambda_x[i,j]*Cx*dx**3)/beta2[i,j])*d4pdx4
             artviscy[i, j] = -((lambda_y[i,j]*Cy*dy**3)/beta2[i,j])*d4pdy4
+    # setting artviscs for points near boundary, extrapolated as with pressure boundary conditions
+    #
+    # ---- check if artvisc is needed at boundaries ----
+    #
+    # near lower wall
+    artviscx[1, 2:jmax - 3] = 2*artviscx[2, 2:jmax - 3] - artviscx[3, 2:jmax - 3]
+    artviscy[1, 2:jmax - 3] = 2*artviscy[2, 2:jmax - 3] - artviscy[3, 2:jmax - 3]
+    # near right wall with lower right corner point
+    artviscx[2:imax - 3, jmax - 2] = 2*artviscx[2:imax - 3, jmax - 3] - artviscx[2:imax - 3, jmax - 4]
+    artviscy[2:imax - 3, jmax - 2] = 2*artviscy[2:imax - 3, jmax - 3] - artviscy[2:imax - 3, jmax - 4]
+    artviscx[1, jmax - 2] = 2*artviscx[2, jmax - 2] - artviscx[3, jmax - 2]
+    artviscy[1, jmax - 2] = 2*artviscy[2, jmax - 2] - artviscy[3, jmax - 2]
+    # near upper wall with upper right corner point
+    artviscx[imax - 2, 2:jmax - 3] = 2*artviscx[imax - 3, 2:jmax - 3] - artviscx[imax - 4, 2:jmax - 3]
+    artviscy[imax - 2, 2:jmax - 3] = 2*artviscy[imax - 3, 2:jmax - 3] - artviscy[imax - 4, 2:jmax - 3]
+    artviscx[imax - 2, jmax - 2] = 2*artviscx[imax - 2, jmax - 3] - artviscx[imax - 2, jmax - 4]
+    artviscy[imax - 2, jmax - 2] = 2*artviscy[imax - 2, jmax - 3] - artviscy[imax - 2, jmax - 4]
+    # near left wall with upper and lower left corner points
+    artviscx[2:imax - 3, 1] = 2*artviscx[2:imax - 3, 2] - artviscx[2:imax - 3, 3]
+    artviscy[2:imax - 3, 1] = 2*artviscy[2:imax - 3, 2] - artviscy[2:imax - 3, 3]
+    artviscx[imax - 2, 1] = 2*artviscx[imax - 2, 2] - artviscx[imax - 2, 3]
+    artviscy[imax - 2, 1] = 2*artviscy[imax - 2, 2] - artviscy[imax - 2, 3]
+    artviscx[1,1] = 2*artviscx[1, 2] - artviscx[1, 3]
+    artviscy[1,1] = 2*artviscy[1, 2] - artviscy[1, 3]
     
 # ************************************************************************
 
