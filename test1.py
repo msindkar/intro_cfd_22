@@ -302,6 +302,22 @@ def bndry():
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
 
+    # ----- Upper Wall BCs -----
+    u[:, jmax - 1, 0] = 2*u[:, jmax -2, 0] - u[:, jmax - 3, 0] # upper wall pressure
+    u[:, jmax - 1, 1] = uinf # upper wall u
+    # ----- Left Wall BCs -----
+    u[0, :, 0] = 2*u[1, :, 0] - u[2, :, 0] # left wall pressure
+    u[0, :, 1] = 0; # left wall u
+    u[0, :, 2] = 0; # left wall v
+    # ----- Bottom Wall BCs -----
+    u[:, 0, 0] = 2*u[:, 1, 0] - u[:, 2, 0] # bottom wall pressure
+    u[:, 0, 1] = 0; # bottom wall u
+    u[:, 0, 2] = 0; # bottom wall v
+    # ----- Right Wall BCs -----
+    u[imax - 1, :, 0] = 2*u[imax - 2, :, 0] - u[imax - 3, :, 0] # bottom wall pressure
+    u[imax - 1, :, 1] = 0 # right wall u
+    u[imax - 1, :, 2] = 0 # right wall v
+
 # ************************************************************************
 
 
