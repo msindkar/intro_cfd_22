@@ -305,6 +305,7 @@ def bndry():
     # ----- Upper Wall BCs -----
     u[:, jmax - 1, 0] = 2*u[:, jmax - 2, 0] - u[:, jmax - 3, 0] # upper wall pressure
     u[:, jmax - 1, 1] = uinf # upper wall u
+    u[:, jmax - 1, 2] = 0 # upper wall v
     # ----- Left Wall BCs -----
     u[0, :, 0] = 2*u[1, :, 0] - u[2, :, 0] # left wall pressure
     u[0, :, 1] = 0; # left wall u
