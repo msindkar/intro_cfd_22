@@ -653,12 +653,12 @@ def compute_time_step(dtmin):
 
     dtvisc = fourth*(dx*dy)/(rmu/rho)
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
-    temp_rkappa_array[:, :] = (unif**2)*rkappa
+    temp_rkappa_array[:, :] = (uinf**2)*rkappa
     beta2 = np.maximum(u[1:imax - 2, 1:jmax - 2, 1]**2 + u[1:imax - 2, 1:jmax - 2, 2]**2, temp_rkappa_array)
     lambda_x = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 1]) + np.sqrt(u[1:imax - 2, 1:jmax - 2, 1]**2 + four*beta2))
     lambda_y = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 2]) + np.sqrt(u[1:imax - 2, 1:jmax - 2, 2]**2 + four*beta2))
     lambda_max = np.maximum(lambda_x, lambda_y)
-    dtconv = dx/lambda_x
+    dtconv = dx/lambda_max
     dtmin = cfl*np.minimum(dtconv, dtvisc)
 
     return dtmin
