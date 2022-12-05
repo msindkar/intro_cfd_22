@@ -715,8 +715,8 @@ def Compute_Artificial_Viscosity():
     lambda_y = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 2]) + np.sqrt(vvel2 + four*beta2))
     # -----
     # loop sets interior artviscs, points near boundary need separate treatment
-    for j in range(2, jmax - 3, 1):
-        for i in range(2, imax - 3, 1):
+    for i in range(2, imax - 3, 1):
+        for j in range(2, jmax - 3, 1):
             d4pdx4 = (u[i + 2, j, 0] - u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
             d4pdy4 = (u[i, j + 2, 0] - u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
             artviscx[i, j] = -((lambda_x[i,j]*Cx*dx**3)/beta2[i,j])*d4pdx4
@@ -856,7 +856,11 @@ def point_Jacobi():
     # !************************************************************** */
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
-
+    
+    for i in range(1, imax-2, 1):
+        for j in range(1, jmax - 2, 1):
+            
+    
 # ************************************************************************
 
 
