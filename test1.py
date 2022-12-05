@@ -846,7 +846,8 @@ def point_Jacobi():
     # d2udy2       # Second derivative of x velocity w.r.t. y
     # d2vdy2       # Second derivative of y velocity w.r.t. y
     # beta2        # Beta squared parameter for time derivative preconditioning
-    # uvel2        # Velocity squared
+    # uvel2        # x velocity squared
+    # vvel2        # y velocity squared, added variable
     global two, half
     global imax, jmax, rho, rhoinv, dx, dy, rkappa, rmu, vel2ref
     global u, uold, artviscx, artviscy, dt, s
@@ -857,9 +858,35 @@ def point_Jacobi():
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
     
+    # Copied from time-step computaion function -----
+    uvel2 = u[1:imax - 2, 1:jmax - 2, 1]**2
+    vvel2 = u[1:imax - 2, 1:jmax - 2, 2]**2
+    vel2ref = uinf**2
+    temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
+    temp_rkappa_array[:, :] = vel2ref*rkappa
+    beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
+    # -----
+    # using local timestepping
+    dt[1:imax - 2, 1:jmax - 2] = dtmin
+    # -----  
     for i in range(1, imax-2, 1):
         for j in range(1, jmax - 2, 1):
-            
+            dpdx = (u[i + 1, j, 0] - u[i - 1, j, 0])/(2*dx)
+            dudx = (u[i + 1, j, 1] - u[i - 1, j, 1])/(2*dx)
+            dvdx = (u[i + 1, j, 2] - u[i - 1, j, 2])/(2*dx)
+            dpdy = (u[i, j + 1, 0] - u[i, j - 1, 0])/(2*dy)
+            dudy = (u[i, j + 1, 1] - u[i, j - 1, 1])/(2*dy)
+            dvdy = (u[i, j + 1, 2] - u[i, j - 1, 2])/(2*dy)
+            d2udx2 = (u[i + 1, j, 1] - 2*u[i, j, 1] + u[i - 1, j, 1])/dx**2
+            d2vdx2 = (u[i + 1, j, 2] - 2*u[i, j, 2] + u[i - 1, j, 2])/dx**2
+            d2udy2 = (u[i, j + 1, 1] - 2*u[i, j, 1] + u[i, j - 1, 1])/dy**2
+            d2vdy2 = (u[i, j + 1, 2] - 2*u[i, j, 2] + u[i, j - 1, 2])/dy**2
+            # ----- continuity equation -----
+            u[i, j, 0] = u[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) + artviscx[i,j] + artviscy[i,j] - s[i, j, 0])
+            # ----- x momentum equation -----
+            u[i, j, 1] = u[i, j, 1] - dt[i, j]*rhoinv*(rho*(u[i, j, 1]*dudx + u[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
+            # ----- y momentum equation -----
+            u[i, j, 2] = u[i, j, 2] - dt[i, j]*rhoinv*(rho*(u[i, j, 2]*dvdx + u[i, j, 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
     
 # ************************************************************************
 
