@@ -629,7 +629,7 @@ def compute_time_step(dtmin):
 
     # Uses global variable(s): one, two, four, half, fourth
     # Uses global variable(s): vel2ref, rmu, rho, dx, dy, cfl, rkappa, imax, jmax
-    #Uses: u
+    # Uses: u
     # To Modify: dt, dtmin
 
     # i                        # i index (x direction)
@@ -637,7 +637,7 @@ def compute_time_step(dtmin):
 
     # dtvisc       # Viscous time step stability criteria (constant over domain)
     # uvel2        # Local velocity squared
-    # beta2        # Beta squared paramete for time derivative preconditioning
+    # beta2        # Beta squared parameter for time derivative preconditioning
     # lambda_x     # Max absolute value eigenvalue in (x,t)
     # lambda_y     # Max absolute value eigenvalue in (y,t)
     # lambda_max   # Max absolute value eigenvalue (used in convective time step computation)
@@ -650,6 +650,16 @@ def compute_time_step(dtmin):
     # !**************************************************************
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
     # !**************************************************************
+
+    dtvisc = fourth*(dx*dy)/(rmu/rho)
+    temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
+    temp_rkappa_array[:, :] = (unif**2)*rkappa
+    beta2 = np.maximum(u[1:imax - 2, 1:jmax - 2, 1]**2 + u[1:imax - 2, 1:jmax - 2, 2]**2, temp_rkappa_array)
+    lambda_x = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 1]) + np.sqrt(u[1:imax - 2, 1:jmax - 2, 1]**2 + four*beta2))
+    lambda_y = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 2]) + np.sqrt(u[1:imax - 2, 1:jmax - 2, 2]**2 + four*beta2))
+    lambda_max = np.maximum(lambda_x, lambda_y)
+    dtconv = dx/lambda_x
+    dtmin = cfl*np.minimum(dtconv, dtvisc)
 
     return dtmin
 
