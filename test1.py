@@ -950,7 +950,40 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     # !************************************************************** */
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
+    
+    # using L2 norm
+    
+    r2 = np.zeros((imax -2, jmax - 2, neq ))
+    
+    for i in range(1, imax-2, 1):
+        for j in range(1, jmax - 2, 1):
+            # ----- code copied from point-jacobi -----
+            dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
+            dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
+            dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
+            dpdy = (uold[i, j + 1, 0] - uold[i, j - 1, 0])/(2*dy)
+            dudy = (uold[i, j + 1, 1] - uold[i, j - 1, 1])/(2*dy)
+            dvdy = (uold[i, j + 1, 2] - uold[i, j - 1, 2])/(2*dy)
+            d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/dx**2
+            d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/dx**2
+            d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/dy**2
+            d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/dy**2
+            # -----
+            r2[i - 1, j - 1, 0] = rho*(dudx + dvdy) + artviscx[i, j] + artviscy[i, j] - s[i, j, 0]
+            r2[i - 1, j - 1, 1] = rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1]
+            r2[i - 1, j - 1, 2] = rho*(uold[i, j, 2]*dvdx + uold[i, j, 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2] # ----- steady portion of discretization, copied from point-jacobi
 
+    if n == ninit:
+        resinit[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
+        resinit[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
+        resinit[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
+        
+    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
+    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
+    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
+    
+    conv = min(res[0]/resinit[0], res[1]/resinit[1], res[3]/resinit[3])
+    
     # Write iterative residuals every 10 iterations
     if n % 10 == 0 or n == ninit:
         fp1.write(str(n)+" "+str(rtime)+" " +
