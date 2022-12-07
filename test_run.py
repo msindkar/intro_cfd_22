@@ -303,19 +303,23 @@ def bndry():
     # !************************************************************** */
 
     # ----- Upper Wall BCs -----
-    u[:, jmax - 1, 0] = 2*u[:, jmax - 2, 0] - u[:, jmax - 3, 0] # upper wall pressure
+    u[1:imax - 1, jmax - 1, 0] = 2*u[:, jmax - 2, 0] - u[:, jmax - 3, 0] # upper wall pressure
+    u[0, jmax - 1, 0] = 2*u[1, jmax - 1, 0] - u[2, jmax - 1, 0] # uppper left corner point pressure
+    u[imax - 1, jmax - 1, 0] = 2*u[imax - 2, jmax - 1, 0] - u[imax - 3, jmax - 1, 0] # upper right corner point pressure
     u[:, jmax - 1, 1] = uinf # upper wall u
     u[:, jmax - 1, 2] = 0 # upper wall v
     # ----- Left Wall BCs -----
-    u[0, :, 0] = 2*u[1, :, 0] - u[2, :, 0] # left wall pressure
+    u[0, 1:jmax - 1, 0] = 2*u[1, 1:jmax - 1, 0] - u[2, 1:jmax - 1, 0] # left wall pressure
+    u[0, 0, 0] = 2*u[0, 1, 0] - u[0, 2, 0] # lower left corner point pressure
     u[0, :, 1] = 0; # left wall u
     u[0, :, 2] = 0; # left wall v
     # ----- Bottom Wall BCs -----
-    u[:, 0, 0] = 2*u[:, 1, 0] - u[:, 2, 0] # bottom wall pressure
+    u[1:imax - 1, 0, 0] = 2*u[1:imax - 1, 1, 0] - u[1:imax - 1, 2, 0] # bottom wall pressure
+    u[imax - 1, 0, 0] = 2*u[imax - 1, 1, 0] - u[imax - 1, 2, 0] # lower right corner point pressure
     u[:, 0, 1] = 0; # bottom wall u
     u[:, 0, 2] = 0; # bottom wall v
     # ----- Right Wall BCs -----
-    u[imax - 1, :, 0] = 2*u[imax - 2, :, 0] - u[imax - 3, :, 0] # bottom wall pressure
+    u[imax - 1, 1:jmax - 1, 0] = 2*u[imax - 2, 1:jmax - 1, 0] - u[imax - 3, 1:jmax - 1, 0] # bottom wall pressure
     u[imax - 1, :, 1] = 0 # right wall u
     u[imax - 1, :, 2] = 0 # right wall v
 
@@ -656,16 +660,16 @@ def compute_time_step(dtmin):
     dtvisc = fourth*(dx*dy)/(rmu/rho)
     temp_dtvisc_array = np.zeros((imax - 2, jmax - 2))
     temp_dtvisc_array[:, :] = dtvisc
-    uvel2 = u[1:imax - 2, 1:jmax - 2, 1]**2
-    vvel2 = u[1:imax - 2, 1:jmax - 2, 2]**2
+    uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = u[1:imax - 1, 1:jmax - 1, 2]**2
     vel2ref = uinf**2
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     temp_dx_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_dx_array[:, :] = dx
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
-    lambda_x = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 1]) + np.sqrt(uvel2 + four*beta2))
-    lambda_y = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 2]) + np.sqrt(vvel2 + four*beta2))
+    lambda_x = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 1]) + np.sqrt(uvel2 + four*beta2))
+    lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     lambda_max = np.maximum(lambda_x, lambda_y)
     dtconv = np.divide(temp_dx_array, lambda_max)
     dtmin = cfl*np.minimum(dtconv, dtvisc)
@@ -709,47 +713,47 @@ def Compute_Artificial_Viscosity():
     # !************************************************************** */
     
     # Copied from time-step computaion function -----
-    uvel2 = u[1:imax - 2, 1:jmax - 2, 1]**2
-    vvel2 = u[1:imax - 2, 1:jmax - 2, 2]**2
+    uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = u[1:imax - 1, 1:jmax - 1, 2]**2
     vel2ref = uinf**2
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
-    lambda_x = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 1]) + np.sqrt(uvel2 + four*beta2))
-    lambda_y = half*(np.abs(u[1:imax - 2, 1:jmax - 2, 2]) + np.sqrt(vvel2 + four*beta2))
+    lambda_x = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 1]) + np.sqrt(uvel2 + four*beta2))
+    lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     # -----
     # loop sets interior artviscs, points near boundary need separate treatment
-    for i in range(2, imax - 3, 1):
-        for j in range(2, jmax - 3, 1):
+    for i in range(2, imax - 1, 1):
+        for j in range(2, jmax - 1, 1):
             d4pdx4 = (u[i + 2, j, 0] - u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
             d4pdy4 = (u[i, j + 2, 0] - u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
-            artviscx[i, j] = -((lambda_x[i,j]*Cx*dx**3)/beta2[i,j])*d4pdx4
-            artviscy[i, j] = -((lambda_y[i,j]*Cy*dy**3)/beta2[i,j])*d4pdy4
+            artviscx[i, j] = -((lambda_x[i - 2, j - 2]*Cx*dx**3)/beta2[i,j])*d4pdx4
+            artviscy[i, j] = -((lambda_y[i - 2, j - 2]*Cy*dy**3)/beta2[i,j])*d4pdy4
     # setting artviscs for points near boundary, extrapolated as with pressure boundary conditions
     #
     # ---- check if artvisc is needed at boundaries ----
     #
-    # near lower wall
-    artviscx[1, 2:jmax - 3] = 2*artviscx[2, 2:jmax - 3] - artviscx[3, 2:jmax - 3]
-    artviscy[1, 2:jmax - 3] = 2*artviscy[2, 2:jmax - 3] - artviscy[3, 2:jmax - 3]
-    # near right wall with lower right corner point
-    artviscx[2:imax - 3, jmax - 2] = 2*artviscx[2:imax - 3, jmax - 3] - artviscx[2:imax - 3, jmax - 4]
-    artviscy[2:imax - 3, jmax - 2] = 2*artviscy[2:imax - 3, jmax - 3] - artviscy[2:imax - 3, jmax - 4]
+    # near left wall
+    artviscx[1, 2:jmax - 2] = 2*artviscx[2, 2:jmax - 2] - artviscx[3, 2:jmax - 2]
+    artviscy[1, 2:jmax - 2] = 2*artviscy[2, 2:jmax - 2] - artviscy[3, 2:jmax - 2]
+    # near upper wall with upper left corner point
+    artviscx[2:imax - 2, jmax - 2] = 2*artviscx[2:imax - 2, jmax - 3] - artviscx[2:imax - 2, jmax - 4]
+    artviscy[2:imax - 2, jmax - 2] = 2*artviscy[2:imax - 2, jmax - 3] - artviscy[2:imax - 2, jmax - 4]
     artviscx[1, jmax - 2] = 2*artviscx[2, jmax - 2] - artviscx[3, jmax - 2]
     artviscy[1, jmax - 2] = 2*artviscy[2, jmax - 2] - artviscy[3, jmax - 2]
-    # near upper wall with upper right corner point
-    artviscx[imax - 2, 2:jmax - 3] = 2*artviscx[imax - 3, 2:jmax - 3] - artviscx[imax - 4, 2:jmax - 3]
-    artviscy[imax - 2, 2:jmax - 3] = 2*artviscy[imax - 3, 2:jmax - 3] - artviscy[imax - 4, 2:jmax - 3]
+    # near right wall with upper right corner point
+    artviscx[imax - 2, 2:jmax - 2] = 2*artviscx[imax - 3, 2:jmax - 2] - artviscx[imax - 4, 2:jmax - 2]
+    artviscy[imax - 2, 2:jmax - 2] = 2*artviscy[imax - 3, 2:jmax - 2] - artviscy[imax - 4, 2:jmax - 2]
     artviscx[imax - 2, jmax - 2] = 2*artviscx[imax - 2, jmax - 3] - artviscx[imax - 2, jmax - 4]
     artviscy[imax - 2, jmax - 2] = 2*artviscy[imax - 2, jmax - 3] - artviscy[imax - 2, jmax - 4]
-    # near left wall with upper and lower left corner points
-    artviscx[2:imax - 3, 1] = 2*artviscx[2:imax - 3, 2] - artviscx[2:imax - 3, 3]
-    artviscy[2:imax - 3, 1] = 2*artviscy[2:imax - 3, 2] - artviscy[2:imax - 3, 3]
+    # near lower wall with lower left and right corner points
+    artviscx[2:imax - 2, 1] = 2*artviscx[2:imax - 2, 2] - artviscx[2:imax - 2, 3]
+    artviscy[2:imax - 2, 1] = 2*artviscy[2:imax - 2, 2] - artviscy[2:imax - 2, 3]
     artviscx[imax - 2, 1] = 2*artviscx[imax - 2, 2] - artviscx[imax - 2, 3]
     artviscy[imax - 2, 1] = 2*artviscy[imax - 2, 2] - artviscy[imax - 2, 3]
     artviscx[1,1] = 2*artviscx[1, 2] - artviscx[1, 3]
     artviscy[1,1] = 2*artviscy[1, 2] - artviscy[1, 3]
-    
+
 # ************************************************************************
 
 
@@ -863,18 +867,18 @@ def point_Jacobi():
     # !************************************************************** */
     
     # Copied from time-step computaion function -----
-    uvel2 = uold[1:imax - 2, 1:jmax - 2, 1]**2
-    vvel2 = uold[1:imax - 2, 1:jmax - 2, 2]**2
+    uvel2 = uold[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = uold[1:imax - 1, 1:jmax - 1, 2]**2
     vel2ref = uinf**2
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
     # -----
     # using local timestepping
-    dt[1:imax - 2, 1:jmax - 2] = dtmin
+    dt[1:imax - 1, 1:jmax - 1] = dtmin
     # -----  
-    for i in range(1, imax-2, 1):
-        for j in range(1, jmax - 2, 1):
+    for i in range(1, imax - 1, 1):
+        for j in range(1, jmax - 1, 1):
             dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
             dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
             dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
@@ -953,11 +957,11 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     
     # using L2 norm
     
-    r2 = np.zeros((imax -2, jmax - 2, neq ))
+    r2 = np.zeros((imax - 2, jmax - 2, neq ))
     init_norm = np.zeros((neq, 1))
     
-    for i in range(1, imax-2, 1):
-        for j in range(1, jmax - 2, 1):
+    for i in range(1, imax - 1, 1):
+        for j in range(1, jmax - 1, 1):
             # ----- code copied from point-jacobi -----
             dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
             dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
