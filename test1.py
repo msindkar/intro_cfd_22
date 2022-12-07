@@ -863,8 +863,8 @@ def point_Jacobi():
     # !************************************************************** */
     
     # Copied from time-step computaion function -----
-    uvel2 = u[1:imax - 2, 1:jmax - 2, 1]**2
-    vvel2 = u[1:imax - 2, 1:jmax - 2, 2]**2
+    uvel2 = uold[1:imax - 2, 1:jmax - 2, 1]**2
+    vvel2 = uold[1:imax - 2, 1:jmax - 2, 2]**2
     vel2ref = uinf**2
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
@@ -875,22 +875,22 @@ def point_Jacobi():
     # -----  
     for i in range(1, imax-2, 1):
         for j in range(1, jmax - 2, 1):
-            dpdx = (u[i + 1, j, 0] - u[i - 1, j, 0])/(2*dx)
-            dudx = (u[i + 1, j, 1] - u[i - 1, j, 1])/(2*dx)
-            dvdx = (u[i + 1, j, 2] - u[i - 1, j, 2])/(2*dx)
-            dpdy = (u[i, j + 1, 0] - u[i, j - 1, 0])/(2*dy)
-            dudy = (u[i, j + 1, 1] - u[i, j - 1, 1])/(2*dy)
-            dvdy = (u[i, j + 1, 2] - u[i, j - 1, 2])/(2*dy)
-            d2udx2 = (u[i + 1, j, 1] - 2*u[i, j, 1] + u[i - 1, j, 1])/dx**2
-            d2vdx2 = (u[i + 1, j, 2] - 2*u[i, j, 2] + u[i - 1, j, 2])/dx**2
-            d2udy2 = (u[i, j + 1, 1] - 2*u[i, j, 1] + u[i, j - 1, 1])/dy**2
-            d2vdy2 = (u[i, j + 1, 2] - 2*u[i, j, 2] + u[i, j - 1, 2])/dy**2
+            dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
+            dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
+            dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
+            dpdy = (uold[i, j + 1, 0] - uold[i, j - 1, 0])/(2*dy)
+            dudy = (uold[i, j + 1, 1] - uold[i, j - 1, 1])/(2*dy)
+            dvdy = (uold[i, j + 1, 2] - uold[i, j - 1, 2])/(2*dy)
+            d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/dx**2
+            d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/dx**2
+            d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/dy**2
+            d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/dy**2
             # ----- continuity equation -----
-            u[i, j, 0] = u[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) + artviscx[i,j] + artviscy[i,j] - s[i, j, 0])
+            u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) + artviscx[i,j] + artviscy[i,j] - s[i, j, 0])
             # ----- x momentum equation -----
-            u[i, j, 1] = u[i, j, 1] - dt[i, j]*rhoinv*(rho*(u[i, j, 1]*dudx + u[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
+            u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
             # ----- y momentum equation -----
-            u[i, j, 2] = u[i, j, 2] - dt[i, j]*rhoinv*(rho*(u[i, j, 2]*dvdx + u[i, j, 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
+            u[i, j, 2] = uold[i, j, 2] - dt[i, j]*rhoinv*(rho*(uold[i, j, 2]*dvdx + uold[i, j, 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
     
 # ************************************************************************
 
