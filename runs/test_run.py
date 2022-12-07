@@ -65,7 +65,7 @@ six = 6.0
 
 nmax = 500000             # Maximum number of iterations
 iterout = 500            # Number of time steps between solution output
-imms = 1                  # Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise
+imms = 0                  # Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise
 isgs = 0                  # Symmetric Gauss-Seidel  flag: = 1 for SGS, = 0 for point Jacobi
 # Restart flag: = 1 for restart (file 'restart.in', = 0 for initial run
 irstr = 0
@@ -75,7 +75,7 @@ ipgorder = 0
 lim = 0
 residualOut = 10          # Number of timesteps between residual output
 
-cfl = 0.5               # CFL number used to determine time step
+cfl = 0.3               # CFL number used to determine time step
 Cx = 0.01               # Parameter for 4th order artificial viscosity in x
 Cy = 0.01               # Parameter for 4th order artificial viscosity in y
 toler = 1.e-10          # Tolerance for iterative residual convergence
@@ -303,7 +303,7 @@ def bndry():
     # !************************************************************** */
 
     # ----- Upper Wall BCs -----
-    u[1:imax - 1, jmax - 1, 0] = 2*u[:, jmax - 2, 0] - u[:, jmax - 3, 0] # upper wall pressure
+    u[1:imax - 1, jmax - 1, 0] = 2*u[1:imax - 1, jmax - 2, 0] - u[1:imax - 1, jmax - 3, 0] # upper wall pressure
     u[0, jmax - 1, 0] = 2*u[1, jmax - 1, 0] - u[2, jmax - 1, 0] # uppper left corner point pressure
     u[imax - 1, jmax - 1, 0] = 2*u[imax - 2, jmax - 1, 0] - u[imax - 3, jmax - 1, 0] # upper right corner point pressure
     u[:, jmax - 1, 1] = uinf # upper wall u
@@ -723,8 +723,8 @@ def Compute_Artificial_Viscosity():
     lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     # -----
     # loop sets interior artviscs, points near boundary need separate treatment
-    for i in range(2, imax - 1, 1):
-        for j in range(2, jmax - 1, 1):
+    for i in range(2, imax - 2, 1):
+        for j in range(2, jmax - 2, 1):
             d4pdx4 = (u[i + 2, j, 0] - u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
             d4pdy4 = (u[i, j + 2, 0] - u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
             artviscx[i, j] = -((lambda_x[i - 2, j - 2]*Cx*dx**3)/beta2[i,j])*d4pdx4
@@ -987,13 +987,13 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))/init_norm[1]
     res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))/init_norm[2]
     
-    conv = min(res[0], res[1], res[3])
+    conv = min(res[0], res[1], res[2])
     
     # Write iterative residuals every 10 iterations
     if n % 10 == 0 or n == ninit:
         fp1.write(str(n)+" "+str(rtime)+" " +
                   str(res[0])+" "+str(res[1])+" "+str(res[2]) + "\n")
-        print(str(n)+" "+str(rtime)+" "+str(dtmin)+" " +
+        print(str(n)+" "+str(rtime)+" "+str(np.amin(dtmin))+" " +
               str(res[0])+" "+str(res[1])+" "+str(res[2])+"\n")
         # Maybe a need to format this better
 
@@ -1193,7 +1193,7 @@ for n in np.arange(ninit, nmax, 1):
     pressure_rescaling()
 
     # Update the time
-    rtime = rtime + dtmin
+    rtime = rtime + np.amin(dt)
 
     # Check iterative convergence using L2 norms of iterative residuals
     res, resinit, conv = check_iterative_convergence(

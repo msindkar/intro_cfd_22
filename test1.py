@@ -303,7 +303,7 @@ def bndry():
     # !************************************************************** */
 
     # ----- Upper Wall BCs -----
-    u[1:imax - 1, jmax - 1, 0] = 2*u[:, jmax - 2, 0] - u[:, jmax - 3, 0] # upper wall pressure
+    u[1:imax - 1, jmax - 1, 0] = 2*u[1:imax - 1, jmax - 2, 0] - u[1:imax - 1, jmax - 3, 0] # upper wall pressure
     u[0, jmax - 1, 0] = 2*u[1, jmax - 1, 0] - u[2, jmax - 1, 0] # uppper left corner point pressure
     u[imax - 1, jmax - 1, 0] = 2*u[imax - 2, jmax - 1, 0] - u[imax - 3, jmax - 1, 0] # upper right corner point pressure
     u[:, jmax - 1, 1] = uinf # upper wall u
