@@ -988,7 +988,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))#/init_norm[1]
     res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))#/init_norm[2]
     
-    conv = min(res[0], res[1], res[3])
+    conv = min(res[0], res[1], res[2])
     
     # Write iterative residuals every 10 iterations
     if n % 10 == 0 or n == ninit:

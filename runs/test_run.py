@@ -75,7 +75,7 @@ ipgorder = 0
 lim = 0
 residualOut = 10          # Number of timesteps between residual output
 
-cfl = 0.3               # CFL number used to determine time step
+cfl = 0.9               # CFL number used to determine time step
 Cx = 0.01               # Parameter for 4th order artificial viscosity in x
 Cy = 0.01               # Parameter for 4th order artificial viscosity in y
 toler = 1.e-10          # Tolerance for iterative residual convergence
@@ -656,7 +656,7 @@ def compute_time_step(dtmin):
     # !**************************************************************
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
     # !**************************************************************
-
+    
     dtvisc = fourth*(dx*dy)/(rmu/rho)
     temp_dtvisc_array = np.zeros((imax - 2, jmax - 2))
     temp_dtvisc_array[:, :] = dtvisc
@@ -672,7 +672,8 @@ def compute_time_step(dtmin):
     lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     lambda_max = np.maximum(lambda_x, lambda_y)
     dtconv = np.divide(temp_dx_array, lambda_max)
-    dtmin = cfl*np.minimum(dtconv, dtvisc)
+    dtmin = np.zeros((imax, jmax))
+    dtmin[1:imax - 1, 1:jmax - 1] = cfl*np.minimum(dtconv, dtvisc) 
 
     return dtmin
 
@@ -723,8 +724,8 @@ def Compute_Artificial_Viscosity():
     lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     # -----
     # loop sets interior artviscs, points near boundary need separate treatment
-    for i in range(2, imax - 2, 1):
-        for j in range(2, jmax - 2, 1):
+    for j in range(2, jmax - 2, 1):
+        for i in range(2, imax - 2, 1):
             d4pdx4 = (u[i + 2, j, 0] - u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
             d4pdy4 = (u[i, j + 2, 0] - u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
             artviscx[i, j] = -((lambda_x[i - 2, j - 2]*Cx*dx**3)/beta2[i,j])*d4pdx4
@@ -873,24 +874,24 @@ def point_Jacobi():
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
-    # -----
+    # -----`
     # using local timestepping
-    dt[1:imax - 1, 1:jmax - 1] = dtmin
+    dt = dtmin
     # -----  
-    for i in range(1, imax - 1, 1):
-        for j in range(1, jmax - 1, 1):
+    for j in range(1, jmax - 1, 1):
+        for i in range(1, imax - 1, 1):
             dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
             dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
             dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
             dpdy = (uold[i, j + 1, 0] - uold[i, j - 1, 0])/(2*dy)
             dudy = (uold[i, j + 1, 1] - uold[i, j - 1, 1])/(2*dy)
             dvdy = (uold[i, j + 1, 2] - uold[i, j - 1, 2])/(2*dy)
-            d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/dx**2
-            d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/dx**2
-            d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/dy**2
-            d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/dy**2
+            d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/(dx**2)
+            d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/(dx**2)
+            d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/(dy**2)
+            d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/(dy**2)
             # ----- continuity equation -----
-            u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) + artviscx[i,j] + artviscy[i,j] - s[i, j, 0])
+            u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) - artviscx[i,j] - artviscy[i,j] - s[i, j, 0])
             # ----- x momentum equation -----
             u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
             # ----- y momentum equation -----
@@ -958,7 +959,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     # using L2 norm
     
     r2 = np.zeros((imax - 2, jmax - 2, neq ))
-    init_norm = np.zeros((neq, 1))
+    #init_norm = np.zeros((neq, 1))
     
     for i in range(1, imax - 1, 1):
         for j in range(1, jmax - 1, 1):
@@ -978,22 +979,25 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
             r2[i - 1, j - 1, 1] = rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1]
             r2[i - 1, j - 1, 2] = rho*(uold[i, j, 2]*dvdx + uold[i, j, 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2] # ----- steady portion of discretization, copied from point-jacobi
 
-    if n == ninit:
-        init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
-        init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
-        init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
+    #if n == ninit:
+     #   init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
+      #  init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
+       # init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
         
-    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))/init_norm[0]
-    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))/init_norm[1]
-    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))/init_norm[2]
+    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))#/init_norm[0]
+    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))#/init_norm[1]
+    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))#/init_norm[2]
     
-    conv = min(res[0], res[1], res[2])
+    if n == ninit:
+        res = resinit
+    
+    conv = min(res[0], res[1])
     
     # Write iterative residuals every 10 iterations
     if n % 10 == 0 or n == ninit:
         fp1.write(str(n)+" "+str(rtime)+" " +
                   str(res[0])+" "+str(res[1])+" "+str(res[2]) + "\n")
-        print(str(n)+" "+str(rtime)+" "+str(np.amin(dtmin))+" " +
+        print(str(n)+" "+str(rtime)+" "+str(np.amin(dtmin[1:imax - 1, 1:jmax - 1]))+" " +
               str(res[0])+" "+str(res[1])+" "+str(res[2])+"\n")
         # Maybe a need to format this better
 
@@ -1193,7 +1197,7 @@ for n in np.arange(ninit, nmax, 1):
     pressure_rescaling()
 
     # Update the time
-    rtime = rtime + np.amin(dt)
+    rtime = rtime + np.amin(dtmin[1:imax - 1, 1:jmax - 1])
 
     # Check iterative convergence using L2 norms of iterative residuals
     res, resinit, conv = check_iterative_convergence(
