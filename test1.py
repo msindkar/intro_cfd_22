@@ -303,26 +303,26 @@ def bndry():
     # !************************************************************** */
 
     # ----- Upper Wall BCs -----
-
-    u[imax - 1, 1:jmax - 1, 0] = 2*u[imax - 2, 1:jmax - 1, 0] - u[imax - 3, 1:jmax - 1, 0] # upper wall pressure
-    u[imax - 1, :, 1] = uinf # upper wall u
-    u[imax - 1, :, 2] = 0 # upper wall v
-    # ----- Left Wall BCs -----
-    u[1:imax - 1, 0, 0] = 2*u[1:imax - 1, 1, 0] - u[1:imax - 1, 2, 0] # left wall pressure
-    u[imax - 1, 0, 0] = 2*u[imax - 1, 1, 0] - u[imax - 1, 2, 0] # upper left corner point pressure
-    u[:, 0, 1] = 0; # left wall u
-    u[:, 0, 2] = 0; # left wall v
-    # ----- Bottom Wall BCs -----
-    u[0, 1:jmax - 1, 0] = 2*u[1, 1:jmax - 1, 0] - u[2, 1:jmax - 1, 0] # lower wall pressure
-    u[0, 0, 0] = 2*u[0, 1, 0] - u[0, 2, 0] # lower left corner point pressure
-    u[0, :, 1] = 0; # lower wall u
-    u[0, :, 2] = 0; # lower wall v
-    # ----- Right Wall BCs -----
-    u[1:imax - 1, jmax - 1, 0] = 2*u[1:imax - 1, jmax - 2, 0] - u[1:imax - 1, jmax - 3, 0] # right wall pressure
-    u[0, jmax - 1, 0] = 2*u[1, jmax - 1, 0] - u[2, jmax - 1, 0] # lower right corner point pressure
+    u[1:imax - 1, jmax - 1, 0] = 2*u[1:imax - 1, jmax - 2, 0] - u[1:imax - 1, jmax - 3, 0] # upper wall pressure
+    u[0, jmax - 1, 0] = 2*u[1, jmax - 1, 0] - u[2, jmax - 1, 0] # uppper left corner point pressure
     u[imax - 1, jmax - 1, 0] = 2*u[imax - 2, jmax - 1, 0] - u[imax - 3, jmax - 1, 0] # upper right corner point pressure
-    u[:, jmax - 1, 1] = 0 # right wall u
-    u[:, jmax - 1, 2] = 0 # right wall v
+    u[:, jmax - 1, 1] = uinf # upper wall u
+    u[:, jmax - 1, 2] = 0 # upper wall v
+    # ----- Left Wall BCs -----
+    u[0, 1:jmax - 1, 0] = 2*u[1, 1:jmax - 1, 0] - u[2, 1:jmax - 1, 0] # left wall pressure
+    u[0, 0, 0] = 2*u[0, 1, 0] - u[0, 2, 0] # lower left corner point pressure
+    u[0, :, 1] = 0; # left wall u
+    u[0, :, 2] = 0; # left wall v
+    # ----- Bottom Wall BCs -----
+    u[1:imax - 1, 0, 0] = 2*u[1:imax - 1, 1, 0] - u[1:imax - 1, 2, 0] # bottom wall pressure
+    u[imax - 1, 0, 0] = 2*u[imax - 1, 1, 0] - u[imax - 1, 2, 0] # lower right corner point pressure
+    u[:, 0, 1] = 0; # bottom wall u
+    u[:, 0, 2] = 0; # bottom wall v
+    # ----- Right Wall BCs -----
+    u[imax - 1, 1:jmax - 1, 0] = 2*u[imax - 2, 1:jmax - 1, 0] - u[imax - 3, 1:jmax - 1, 0] # bottom wall pressure
+    u[imax - 1, :, 1] = 0 # right wall u
+    u[imax - 1, :, 2] = 0 # right wall v
+
 # ************************************************************************
 
 
