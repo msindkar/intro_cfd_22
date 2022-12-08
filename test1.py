@@ -656,7 +656,7 @@ def compute_time_step(dtmin):
     # !**************************************************************
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
     # !**************************************************************
-
+    
     dtvisc = fourth*(dx*dy)/(rmu/rho)
     temp_dtvisc_array = np.zeros((imax - 2, jmax - 2))
     temp_dtvisc_array[:, :] = dtvisc
@@ -672,7 +672,8 @@ def compute_time_step(dtmin):
     lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     lambda_max = np.maximum(lambda_x, lambda_y)
     dtconv = np.divide(temp_dx_array, lambda_max)
-    dtmin = cfl*np.minimum(dtconv, dtvisc)
+    dtmin = np.zeros((imax, jmax))
+    dtmin[1:imax - 1, 1:jmax - 1] = cfl*np.minimum(dtconv, dtvisc) 
 
     return dtmin
 
@@ -723,8 +724,8 @@ def Compute_Artificial_Viscosity():
     lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     # -----
     # loop sets interior artviscs, points near boundary need separate treatment
-    for i in range(2, imax - 1, 1):
-        for j in range(2, jmax - 1, 1):
+    for j in range(2, jmax - 2, 1):
+        for i in range(2, imax - 2, 1):
             d4pdx4 = (u[i + 2, j, 0] - u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
             d4pdy4 = (u[i, j + 2, 0] - u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
             artviscx[i, j] = -((lambda_x[i - 2, j - 2]*Cx*dx**3)/beta2[i,j])*d4pdx4
@@ -873,24 +874,24 @@ def point_Jacobi():
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
-    # -----
+    # -----`
     # using local timestepping
-    dt[1:imax - 1, 1:jmax - 1] = dtmin
+    dt = dtmin
     # -----  
-    for i in range(1, imax - 1, 1):
-        for j in range(1, jmax - 1, 1):
+    for j in range(1, jmax - 1, 1):
+        for i in range(1, imax - 1, 1):
             dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
             dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
             dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
             dpdy = (uold[i, j + 1, 0] - uold[i, j - 1, 0])/(2*dy)
             dudy = (uold[i, j + 1, 1] - uold[i, j - 1, 1])/(2*dy)
             dvdy = (uold[i, j + 1, 2] - uold[i, j - 1, 2])/(2*dy)
-            d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/dx**2
-            d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/dx**2
-            d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/dy**2
-            d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/dy**2
+            d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/(dx**2)
+            d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/(dx**2)
+            d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/(dy**2)
+            d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/(dy**2)
             # ----- continuity equation -----
-            u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) + artviscx[i,j] + artviscy[i,j] - s[i, j, 0])
+            u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) - artviscx[i,j] - artviscy[i,j] - s[i, j, 0])
             # ----- x momentum equation -----
             u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
             # ----- y momentum equation -----
