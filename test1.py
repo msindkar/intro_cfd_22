@@ -959,7 +959,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     # using L2 norm
     
     r2 = np.zeros((imax - 2, jmax - 2, neq ))
-    init_norm = np.zeros((neq, 1))
+    #init_norm = np.zeros((neq, 1))
     
     for i in range(1, imax - 1, 1):
         for j in range(1, jmax - 1, 1):
@@ -979,14 +979,14 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
             r2[i - 1, j - 1, 1] = rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1]
             r2[i - 1, j - 1, 2] = rho*(uold[i, j, 2]*dvdx + uold[i, j, 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2] # ----- steady portion of discretization, copied from point-jacobi
 
-    if n == ninit:
-        init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
-        init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
-        init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
+    #if n == ninit:
+     #   init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
+      #  init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
+       # init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
         
-    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))/init_norm[0]
-    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))/init_norm[1]
-    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))/init_norm[2]
+    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))#/init_norm[0]
+    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))#/init_norm[1]
+    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))#/init_norm[2]
     
     conv = min(res[0], res[1], res[3])
     
