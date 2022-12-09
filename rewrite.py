@@ -635,15 +635,16 @@ def compute_time_step(dtmin):
 
     # Uses global variable(s): one, two, four, half, fourth
     # Uses global variable(s): vel2ref, rmu, rho, dx, dy, cfl, rkappa, imax, jmax
-    #Uses: u
+    # Uses: u
     # To Modify: dt, dtmin
 
     # i                        # i index (x direction)
     # j                        # j index (y direction)
 
     # dtvisc       # Viscous time step stability criteria (constant over domain)
-    # uvel2        # Local velocity squared
-    # beta2        # Beta squared paramete for time derivative preconditioning
+    # uvel2        # Local x velocity squared
+    # vvel2        # Local y velocity squared, added variable
+    # beta2        # Beta squared parameter for time derivative preconditioning
     # lambda_x     # Max absolute value eigenvalue in (x,t)
     # lambda_y     # Max absolute value eigenvalue in (y,t)
     # lambda_max   # Max absolute value eigenvalue (used in convective time step computation)
@@ -656,6 +657,24 @@ def compute_time_step(dtmin):
     # !**************************************************************
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
     # !**************************************************************
+    
+    dtvisc = (dx*dy)/(4*rmu/rho)
+    temp_dtvisc_array = np.zeros((imax - 2, jmax - 2))
+    temp_dtvisc_array[:, :] = dtvisc
+    uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = u[1:imax - 1, 1:jmax - 1, 2]**2
+    vel2ref = uinf**2
+    temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
+    temp_rkappa_array[:, :] = vel2ref*rkappa
+    temp_dx_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
+    temp_dx_array[:, :] = min(dx,dy)
+    beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
+    lambda_x = 0.5*(np.abs(u[1:imax - 1, 1:jmax - 1, 1]) + np.sqrt(uvel2 + 4*beta2))
+    lambda_y = 0.5*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + 4*beta2))
+    lambda_max = np.maximum(lambda_x, lambda_y)
+    dtconv = np.divide(temp_dx_array, lambda_max)
+    dtmin = np.zeros((imax, jmax))
+    dtmin[1:imax - 1, 1:jmax - 1] = cfl*np.minimum(dtconv, dtvisc) 
 
     return dtmin
 
@@ -693,7 +712,10 @@ def Compute_Artificial_Viscosity():
     # !************************************************************** */
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
-
+    
+    # Copied from time-step computaion function -----
+    
+    # -----
 # ************************************************************************
 
 
