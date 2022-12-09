@@ -673,7 +673,6 @@ def compute_time_step(dtmin):
     lambda_y = 0.5*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + 4*beta2))
     lambda_max = np.maximum(lambda_x, lambda_y)
     dtconv = np.divide(temp_dx_array, lambda_max)
-    dtmin = np.zeros((imax, jmax))
     dtmin[1:imax - 1, 1:jmax - 1] = cfl*np.minimum(dtconv, dtvisc) 
 
     return dtmin
@@ -964,7 +963,7 @@ rL2norm = [0, 0, 0]
 rLinfnorm = [0, 0, 0]
 rtime = -99.9         # Variable to estimate simulation time
 # Minimum time step for a given iteration (initialized large)
-dtmin = 1.0e99
+dtmin = np.zeros((imax, jmax))
 
 x = -99.9       # Temporary variable for x location
 y = -99.9       # Temporary variable for y location
