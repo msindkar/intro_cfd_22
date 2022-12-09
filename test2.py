@@ -1048,8 +1048,21 @@ def Discretization_Error_Norms(rL1norm, rL2norm, rLinfnorm):
         # !**************************************************************
         # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
         #!***************************************************************
-
-        return  # remove this once you add code
+        
+        DE = abs(ummsArray - u)
+        
+        rL1norm[0] = np.sum(DE[:, :, 0])/(imax*jmax)
+        rL1norm[1] = np.sum(DE[:, :, 1])/(imax*jmax)
+        rL1norm[2] = np.sum(DE[:, :, 2])/(imax*jmax)
+        
+        rL2norm[0] = np.sqrt(np.sum(DE[:, :, 0]**2)/(imax*jmax))
+        rL2norm[1] = np.sqrt(np.sum(DE[:, :, 1]**2)/(imax*jmax))
+        rL2norm[2] = np.sqrt(np.sum(DE[:, :, 2]**2)/(imax*jmax))
+        
+        rLinfnorm[0] = np.max(DE[:, :, 0])
+        rLinfnorm[1] = np.max(DE[:, :, 1])
+        rLinfnorm[2] = np.max(DE[:, :, 2])
+        # remove this once you add code
 
     # ***************************************************************************
 
