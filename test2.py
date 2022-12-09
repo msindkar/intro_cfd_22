@@ -32,6 +32,9 @@ global artviscx  # Artificial viscosity in x-direction
 global artviscy  # Artificial viscosity in y-direction
 global ummsArray  # Array of umms values (funtion umms evaluated at all nodes)
 
+# ----- test global variables -----
+global init_norm
+# -----
 
 # ************* Following are fixed parameters for array sizes **************
 imax = 65     # * Number of points in the x-direction (use odd numbers only)
@@ -666,7 +669,7 @@ def compute_time_step(dtmin):
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     temp_dx_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
-    temp_dx_array[:, :] = dx
+    temp_dx_array[:, :] = min(dx,dy)
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
     lambda_x = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 1]) + np.sqrt(uvel2 + four*beta2))
     lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
@@ -737,23 +740,28 @@ def Compute_Artificial_Viscosity():
     # near left wall
     artviscx[1, 2:jmax - 2] = 2*artviscx[2, 2:jmax - 2] - artviscx[3, 2:jmax - 2]
     artviscy[1, 2:jmax - 2] = 2*artviscy[2, 2:jmax - 2] - artviscy[3, 2:jmax - 2]
-    # near upper wall with upper left corner point
+    # near upper wall
     artviscx[2:imax - 2, jmax - 2] = 2*artviscx[2:imax - 2, jmax - 3] - artviscx[2:imax - 2, jmax - 4]
     artviscy[2:imax - 2, jmax - 2] = 2*artviscy[2:imax - 2, jmax - 3] - artviscy[2:imax - 2, jmax - 4]
-    artviscx[1, jmax - 2] = 2*artviscx[2, jmax - 2] - artviscx[3, jmax - 2]
-    artviscy[1, jmax - 2] = 2*artviscy[2, jmax - 2] - artviscy[3, jmax - 2]
-    # near right wall with upper right corner point
+    # near right wall
     artviscx[imax - 2, 2:jmax - 2] = 2*artviscx[imax - 3, 2:jmax - 2] - artviscx[imax - 4, 2:jmax - 2]
     artviscy[imax - 2, 2:jmax - 2] = 2*artviscy[imax - 3, 2:jmax - 2] - artviscy[imax - 4, 2:jmax - 2]
-    artviscx[imax - 2, jmax - 2] = 2*artviscx[imax - 2, jmax - 3] - artviscx[imax - 2, jmax - 4]
-    artviscy[imax - 2, jmax - 2] = 2*artviscy[imax - 2, jmax - 3] - artviscy[imax - 2, jmax - 4]
-    # near lower wall with lower left and right corner points
+    # near lower wall
     artviscx[2:imax - 2, 1] = 2*artviscx[2:imax - 2, 2] - artviscx[2:imax - 2, 3]
     artviscy[2:imax - 2, 1] = 2*artviscy[2:imax - 2, 2] - artviscy[2:imax - 2, 3]
+    
+    # corner points
+    artviscx[1, jmax - 2] = 2*artviscx[2, jmax - 2] - artviscx[3, jmax - 2]
+    artviscy[1, jmax - 2] = 2*artviscy[2, jmax - 2] - artviscy[3, jmax - 2] # upper left corner point
+    
+    artviscx[imax - 2, jmax - 2] = 2*artviscx[imax - 3, jmax - 2] - artviscx[imax - 3, jmax - 2]
+    artviscy[imax - 2, jmax - 2] = 2*artviscy[imax - 3, jmax - 2] - artviscy[imax - 3, jmax - 2] # upper right corner point
+    
     artviscx[imax - 2, 1] = 2*artviscx[imax - 2, 2] - artviscx[imax - 2, 3]
-    artviscy[imax - 2, 1] = 2*artviscy[imax - 2, 2] - artviscy[imax - 2, 3]
-    artviscx[1,1] = 2*artviscx[1, 2] - artviscx[1, 3]
-    artviscy[1,1] = 2*artviscy[1, 2] - artviscy[1, 3]
+    artviscy[imax - 2, 1] = 2*artviscy[imax - 2, 2] - artviscy[imax - 2, 3] # lower right corner point
+    
+    artviscx[1,1] = 2*artviscx[2, 1] - artviscx[3, 1]
+    artviscy[1,1] = 2*artviscy[2, 1] - artviscy[3, 1] # lower left corner point
 
 # ************************************************************************
 
@@ -949,6 +957,9 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     global zero
     global imax, jmax, neq, fsmall
     global u, uold, dt, fp1
+    # -----
+    global init_norm
+    # -----
 
     # Compute iterative residuals to monitor iterative convergence
 
@@ -979,14 +990,22 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
             r2[i - 1, j - 1, 1] = rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1]
             r2[i - 1, j - 1, 2] = rho*(uold[i, j, 1]*dvdx + uold[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2] # ----- steady portion of discretization, copied from point-jacobi
 
-    #if n == ninit:
-     #   init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
-      #  init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
-       # init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
-        
-    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))#/init_norm[0]
-    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))#/init_norm[1]
-    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))#/init_norm[2]
+    if n == ninit:
+        init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
+    
+    if n == ninit + 1:
+        #init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
+        init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
+        init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
+    #if n == ninit + 1:
+    #    init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
+    
+    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))/init_norm[0]
+    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))/init_norm[1]
+    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))/init_norm[2]
+    
+    if n == ninit:
+        res = resinit
     
     conv = min(res[0], res[1], res[2])
     
@@ -994,7 +1013,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     if n % 10 == 0 or n == ninit:
         fp1.write(str(n)+" "+str(rtime)+" " +
                   str(res[0])+" "+str(res[1])+" "+str(res[2]) + "\n")
-        print(str(n)+" "+str(rtime)+" "+str(dtmin)+" " +
+        print(str(n)+" "+str(rtime)+" "+str(np.amin(dtmin[1:imax - 1, 1:jmax - 1]))+" " +
               str(res[0])+" "+str(res[1])+" "+str(res[2])+"\n")
         # Maybe a need to format this better
 
@@ -1116,6 +1135,10 @@ np.place(rL1norm, rL1norm == 0, -99.9)
 np.place(rL2norm, rL2norm == 0, -99.9)
 np.place(rLinfnorm, rLinfnorm == 0, -99.9)
 
+# -----
+init_norm = np.zeros((neq, 1))
+init_norm[:] = 1
+# -----
 
 # Debug output: Uncomment and modify if debugging
 # fp6 = fopen("./Debug.dat","w");
@@ -1194,7 +1217,7 @@ for n in np.arange(ninit, nmax, 1):
     pressure_rescaling()
 
     # Update the time
-    rtime = rtime + dtmin
+    rtime = rtime + np.amin(dtmin[1:imax - 1, 1:jmax - 1])
 
     # Check iterative convergence using L2 norms of iterative residuals
     res, resinit, conv = check_iterative_convergence(
