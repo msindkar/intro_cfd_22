@@ -81,7 +81,7 @@ residualOut = 10          # Number of timesteps between residual output
 cfl = 0.5               # CFL number used to determine time step
 Cx = 0.01               # Parameter for 4th order artificial viscosity in x
 Cy = 0.01               # Parameter for 4th order artificial viscosity in y
-toler = 1.e-10          # Tolerance for iterative residual convergence
+toler = 1.e-8          # Tolerance for iterative residual convergence
 rkappa = 0.1            # Time derivative preconditioning constant
 Re = 100.0              # Reynolds number = rho*Uinf*L/rmu
 # Initial pressure (N/m^2) -> from MMS value at cavity center
@@ -162,20 +162,20 @@ def output_file_headers():
 
     fp1 = open("history.dat", "w")
     fp1.write("TITLE = 'Cavity Iterative Residual History'\n")
-    fp1.write("variables='Iteration''Time(s)''Res1''Res2''Res3'\n")
+    fp1.write('variables="Iteration""Time(s)""Res1""Res2""Res3"\n')
 
     fp2 = open("cavity.dat", "w")
     fp2.write("TITLE = 'Cavity Field Data'\n")
     if imms == 1:
 
-        fp2.write("variables='x(m)''y(m)''p(N/m^2)''u(m/s)''v(m/s)'")
-        fp2.write("'p-exact''u-exact''v-exact''DE-p''DE-u''DE-v'\n")
+        fp2.write('variables="x(m)""y(m)""p(N/m^2)""u(m/s)""v(m/s)"')
+        fp2.write('"p-exact""u-exact""v-exact""DE-p""DE-u""DE-v"\n')
 
     else:
 
         if imms == 0:
 
-            fp2.write("variables='x(m)''y(m)''p(N/m^2)''u(m/s)''v(m/s)\n")
+            fp2.write('variables="x(m)""y(m)""p(N/m^2)""u(m/s)""v(m/s)"\n')
 
         else:
 
@@ -420,7 +420,7 @@ def write_output(n, resinit, rtime):
     global fp2, fp3
 
     # Field output
-    fp2.write("zone T='n= "+str(n)+" ' "+"\n")
+    fp2.write('zone T="n= '+str(n)+' " '+"\n")
     fp2.write("I= "+str(imax)+" J= "+str(jmax)+"\n")
     fp2.write("DATAPACKING=POINT\n")
 
