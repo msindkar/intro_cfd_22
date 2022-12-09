@@ -660,7 +660,7 @@ def compute_time_step(dtmin):
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
     # !**************************************************************
     
-    dtvisc = fourth*(dx*dy)/(rmu/rho)
+    dtvisc = (dx*dy)/(4*rmu/rho)
     temp_dtvisc_array = np.zeros((imax - 2, jmax - 2))
     temp_dtvisc_array[:, :] = dtvisc
     uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
@@ -669,7 +669,7 @@ def compute_time_step(dtmin):
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     temp_dx_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
-    temp_dx_array[:, :] = min(dx,dy)
+    temp_dx_array[:, :] = dx
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
     lambda_x = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 1]) + np.sqrt(uvel2 + four*beta2))
     lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
@@ -729,8 +729,8 @@ def Compute_Artificial_Viscosity():
     # loop sets interior artviscs, points near boundary need separate treatment
     for j in range(2, jmax - 2, 1):
         for i in range(2, imax - 2, 1):
-            d4pdx4 = (u[i + 2, j, 0] - u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
-            d4pdy4 = (u[i, j + 2, 0] - u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
+            d4pdx4 = (u[i + 2, j, 0] - 4*u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
+            d4pdy4 = (u[i, j + 2, 0] - 4*u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
             artviscx[i, j] = -((lambda_x[i - 2, j - 2]*Cx*dx**3)/beta2[i,j])*d4pdx4
             artviscy[i, j] = -((lambda_y[i - 2, j - 2]*Cy*dy**3)/beta2[i,j])*d4pdy4
     # setting artviscs for points near boundary, extrapolated as with pressure boundary conditions
@@ -867,7 +867,41 @@ def SGS_backward_sweep():
     # !************************************************************** */
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
-
+    
+    uold = copy.deepcopy(u)
+    
+    # Copied from time-step computaion function -----
+    uvel2 = uold[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = uold[1:imax - 1, 1:jmax - 1, 2]**2
+    vel2ref = uinf**2
+    temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
+    temp_rkappa_array[:, :] = vel2ref*rkappa
+    beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
+    # -----
+    # ----- code copied from point jacobi -----
+    # -----
+    # using local timestepping
+    dt = dtmin
+    
+    for j in range(jmax - 2, 0, -1):
+        for i in range(imax - 2, 0, -1):
+            dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
+            dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
+            dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
+            dpdy = (uold[i, j + 1, 0] - uold[i, j - 1, 0])/(2*dy)
+            dudy = (uold[i, j + 1, 1] - uold[i, j - 1, 1])/(2*dy)
+            dvdy = (uold[i, j + 1, 2] - uold[i, j - 1, 2])/(2*dy)
+            d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/(dx**2)
+            d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/(dx**2)
+            d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/(dy**2)
+            d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/(dy**2)
+            # ----- continuity equation -----
+            u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) - artviscx[i,j] - artviscy[i,j] - s[i, j, 0])
+            # ----- x momentum equation -----
+            u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
+            # ----- y momentum equation -----
+            u[i, j, 2] = uold[i, j, 2] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dvdx + uold[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
+    
 # ************************************************************************
 
 
