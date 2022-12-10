@@ -946,6 +946,8 @@ def point_Jacobi():
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
     
+    # THINK ABOUT VECTORIZATION
+    
     # Copied from time-step computaion function -----
     uvel2 = uold[1:imax - 1, 1:jmax - 1, 1]**2
     vvel2 = uold[1:imax - 1, 1:jmax - 1, 2]**2
