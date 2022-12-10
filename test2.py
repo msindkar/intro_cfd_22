@@ -1081,9 +1081,9 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     # Write iterative residuals every 10 iterations
     if n % 10 == 0 or n == ninit:
         fp1.write(str(n)+" "+str(rtime)+" "+                                   # --------------- HISTORY.DAT OUTPUT PROBLEM HERE -----------------------
-                  str(res[0])+" "+str(res[1])+" "+str(res[2]) + "\n")
+                  str(float(res[0]))+" "+str(float(res[1]))+" "+str(float(res[2])) + "\n")
         print(str(n)+" "+str(rtime)+" "+str(np.amin(dtmin[1:imax - 1, 1:jmax - 1]))+" " +
-              str(res[0])+" "+str(res[1])+" "+str(res[2])+"\n")
+              str(float(res[0]))+" "+str(float(res[1]))+" "+str(float(res[2]))+"\n")
         # Maybe a need to format this better
 
     # Write header for iterative residuals every 200 iterations
