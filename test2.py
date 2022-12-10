@@ -161,11 +161,11 @@ def output_file_headers():
     global imms, fp1, fp2
 
     fp1 = open("history.dat", "w")
-    fp1.write("TITLE = 'Cavity Iterative Residual History'\n")
+    fp1.write('TITLE = "Cavity Iterative Residual History"\n')
     fp1.write('variables="Iteration""Time(s)""Res1""Res2""Res3"\n')
 
     fp2 = open("cavity.dat", "w")
-    fp2.write("TITLE = 'Cavity Field Data'\n")
+    fp2.write('TITLE = "Cavity Field Data"\n')
     if imms == 1:
 
         fp2.write('variables="x(m)""y(m)""p(N/m^2)""u(m/s)""v(m/s)"')
@@ -420,8 +420,8 @@ def write_output(n, resinit, rtime):
     global fp2, fp3
 
     # Field output
-    fp2.write('zone T="n= '+str(n)+' " '+"\n")
-    fp2.write("I= "+str(imax)+" J= "+str(jmax)+"\n")
+    fp2.write('zone T="n='+str(n)+'"'+"\n")
+    fp2.write("I="+str(imax)+" J="+str(jmax)+"\n")
     fp2.write("DATAPACKING=POINT\n")
 
     if imms == 1:
@@ -429,8 +429,8 @@ def write_output(n, resinit, rtime):
             for j in np.arange(0, jmax, 1):
                 x = (xmax - xmin)*i/(imax - 1)
                 y = (ymax - ymin)*j/(jmax - 1)
-                fp2.write(str(x)+" "+str(y)+" "+str(u[i, j, 0])+" "+str(u[i, j, 1])+" "+str(u[i, j, 2])+" "+str(ummsArray[i, j, 0])+" "+str(ummsArray[i, j, 1])+" "+str(ummsArray[i, j, 2])+" " +
-                          str((u[i, j, 0]-ummsArray[i, j, 0]))+" "+str((u[i, j, 1]-ummsArray[i, j, 1]))+" "+str((u[i, j, 2]-ummsArray[i, j, 2]))+"\n")
+                fp2.write(str(x)[0:8]+" "+str(y)[0:8]+" "+str(u[i, j, 0])[0:8]+" "+str(u[i, j, 1])[0:8]+" "+str(u[i, j, 2])[0:8]+" "+str(ummsArray[i, j, 0])[0:8]+" "+str(ummsArray[i, j, 1])[0:8]+" "+str(ummsArray[i, j, 2])[0:8]+" " +
+                          str((u[i, j, 0]-ummsArray[i, j, 0]))[0:8]+" "+str((u[i, j, 1]-ummsArray[i, j, 1]))[0:8]+" "+str((u[i, j, 2]-ummsArray[i, j, 2]))[0:8]+"\n")
     else:
         if imms == 0:
             for j in np.arange(0, jmax, 1):
@@ -438,7 +438,7 @@ def write_output(n, resinit, rtime):
                     x = (xmax - xmin)*i/(imax - 1)
                     y = (ymax - ymin)*j/(jmax - 1)
                     fp2.write(str(
-                        x)+" "+str(y)+" "+str(u[i, j, 0])+" "+str(u[i, j, 1])+" "+str(u[i, j, 2])+"\n")
+                        x)[0:8]+" "+str(y)[0:8]+" "+str(u[i, j, 0])[0:8]+" "+str(u[i, j, 1])[0:8]+" "+str(u[i, j, 2])[0:8]+"\n")
         else:
             print("ERROR: imms must equal 0 or 1!\n")
             return
@@ -1075,7 +1075,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     
     # Write iterative residuals every 10 iterations
     if n % 10 == 0 or n == ninit:
-        fp1.write(str(n)+" "+str(rtime)+" " +                                   # --------------- HISTORY.DAT OUTPUT PROBLEM HERE -----------------------
+        fp1.write(str(rtime)+" " + str(n)+" "+                                  # --------------- HISTORY.DAT OUTPUT PROBLEM HERE -----------------------
                   str(res[0])+" "+str(res[1])+" "+str(res[2]) + "\n")
         print(str(n)+" "+str(rtime)+" "+str(np.amin(dtmin[1:imax - 1, 1:jmax - 1]))+" " +
               str(res[0])+" "+str(res[1])+" "+str(res[2])+"\n")
@@ -1083,7 +1083,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
 
     # Write header for iterative residuals every 200 iterations
     if n % 200 == 0 or n == ninit:
-        print("Iter."+" "+"Time (s)"+" "+"dt (s)"+" " +
+        print("Time (s)"+" "+"Iter."+" "+"Time (s)"+" "+"dt (s)"+" " +
               "Continuity"+" "+"x-Momentum"+" "+"y-Momentum\n")
 
     return res, resinit, conv
@@ -1294,7 +1294,8 @@ for n in np.arange(ninit, nmax, 1):
     pressure_rescaling()
 
     # Update the time
-    rtime = rtime + np.amin(dtmin[1:imax - 1, 1:jmax - 1])
+    rtime = rtime + dtmin
+    rtime = float(rtime[1,1])
 
     # Check iterative convergence using L2 norms of iterative residuals
     res, resinit, conv = check_iterative_convergence(
