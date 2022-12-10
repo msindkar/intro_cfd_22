@@ -162,7 +162,7 @@ def output_file_headers():
 
     fp1 = open("history.dat", "w")
     fp1.write('TITLE = "Cavity Iterative Residual History"\n')
-    fp1.write('variables="Iteration""Time(s)""Res1""Res2""Res3"\n')
+    fp1.write('variables="Time(s)""Iteration""Res1""Res2""Res3"\n')
 
     fp2 = open("cavity.dat", "w")
     fp2.write('TITLE = "Cavity Field Data"\n')
@@ -1061,8 +1061,6 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
         #init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
         init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
         init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
-    #if n == ninit + 1:
-    #    init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
     
     res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))/init_norm[0]
     res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))/init_norm[1]
@@ -1075,7 +1073,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     
     # Write iterative residuals every 10 iterations
     if n % 10 == 0 or n == ninit:
-        fp1.write(str(rtime)+" " + str(n)+" "+                                  # --------------- HISTORY.DAT OUTPUT PROBLEM HERE -----------------------
+        fp1.write(str(n)+" "+str(rtime)+" "+                                   # --------------- HISTORY.DAT OUTPUT PROBLEM HERE -----------------------
                   str(res[0])+" "+str(res[1])+" "+str(res[2]) + "\n")
         print(str(n)+" "+str(rtime)+" "+str(np.amin(dtmin[1:imax - 1, 1:jmax - 1]))+" " +
               str(res[0])+" "+str(res[1])+" "+str(res[2])+"\n")
@@ -1083,7 +1081,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
 
     # Write header for iterative residuals every 200 iterations
     if n % 200 == 0 or n == ninit:
-        print("Time (s)"+" "+"Iter."+" "+"Time (s)"+" "+"dt (s)"+" " +
+        print("Iter."+" "+"Time (s)"+" "+"dt (s)"+" " +
               "Continuity"+" "+"x-Momentum"+" "+"y-Momentum\n")
 
     return res, resinit, conv
@@ -1113,7 +1111,7 @@ def Discretization_Error_Norms(rL1norm, rL2norm, rLinfnorm):
         # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
         #!***************************************************************
         
-        DE = abs(ummsArray - u)
+        DE = np.abs(ummsArray - u)
         
         rL1norm[0] = np.sum(DE[:, :, 0])/(imax*jmax)
         rL1norm[1] = np.sum(DE[:, :, 1])/(imax*jmax)
@@ -1126,7 +1124,10 @@ def Discretization_Error_Norms(rL1norm, rL2norm, rLinfnorm):
         rLinfnorm[0] = np.max(DE[:, :, 0])
         rLinfnorm[1] = np.max(DE[:, :, 1])
         rLinfnorm[2] = np.max(DE[:, :, 2])
-        # remove this once you add code
+        
+        print("\n" + 'L1 norm [p] [u] [v] = ' + str(rL1norm[0]) + " " + str(rL1norm[1]) + " " + str(rL1norm[2]) + "\n")
+        print('L2 norm [p] [u] [v] = ' + str(rL2norm[0]) + " " + str(rL2norm[1]) + " " + str(rL2norm[2]) + "\n")
+        print('Linf norm [p] [u] [v] = ' + str(rLinfnorm[0]) + " " + str(rLinfnorm[1]) + " " + str(rLinfnorm[2]))
 
     # ***************************************************************************
 
@@ -1294,8 +1295,7 @@ for n in np.arange(ninit, nmax, 1):
     pressure_rescaling()
 
     # Update the time
-    rtime = rtime + dtmin
-    rtime = float(rtime[1,1])
+    rtime = rtime + np.amin(dtmin[1:imax - 1, 1:jmax - 1])
 
     # Check iterative convergence using L2 norms of iterative residuals
     res, resinit, conv = check_iterative_convergence(
