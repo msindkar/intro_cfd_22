@@ -731,8 +731,8 @@ def Compute_Artificial_Viscosity():
         for i in range(2, imax - 2, 1):
             d4pdx4 = (u[i + 2, j, 0] - 4*u[i + 1, j, 0] + 6*u[i, j, 0] - 4*u[i - 1, j, 0] + u[i - 2, j, 0])/dx**4
             d4pdy4 = (u[i, j + 2, 0] - 4*u[i, j + 1, 0] + 6*u[i, j, 0] - 4*u[i, j - 1, 0] + u[i, j - 2, 0])/dy**4
-            artviscx[i, j] = -((lambda_x[i - 2, j - 2]*Cx*dx**3)/beta2[i,j])*d4pdx4
-            artviscy[i, j] = -((lambda_y[i - 2, j - 2]*Cy*dy**3)/beta2[i,j])*d4pdy4
+            artviscx[i, j] = -((lambda_x[i, j]*Cx*dx**3)/beta2[i,j])*d4pdx4
+            artviscy[i, j] = -((lambda_y[i, j]*Cy*dy**3)/beta2[i,j])*d4pdy4
     # setting artviscs for points near boundary, extrapolated as with pressure boundary conditions
     #
     # ---- check if artvisc is needed at boundaries ----
@@ -762,6 +762,13 @@ def Compute_Artificial_Viscosity():
     
     artviscx[1,1] = 2*artviscx[2, 1] - artviscx[3, 1]
     artviscy[1,1] = 2*artviscy[2, 1] - artviscy[3, 1] # lower left corner point
+    
+    # ghost_pres_upper = 2*u[:, jmax - 1, 0] - u[:, jmax - 2, 0]
+    # artviscx[:, jmax - 2] = (ghost_pres_upper - 4*u[:, jmax - 1])
+    
+    # ghost_pres_left = 2*u[0, 0:jmax - 1, 0] - u[1, 0:jmax - 1, 0]
+    # ghost_pres_lower = 2*u[1:, 0, 0] - u[1:, 1, 0]
+    # ghost_pres_right = 2*u[imax - 1, 1:jmax - 1, 0] - u[imax - 2, 1:jmax - 1, 0]
 
 # ************************************************************************
 
