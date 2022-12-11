@@ -164,7 +164,7 @@ def output_file_headers():
 
     fp1 = open("history.dat", "w")
     fp1.write('TITLE = "Cavity Iterative Residual History"\n')
-    fp1.write('variables="Time(s)""Iteration""Res1""Res2""Res3"\n')
+    fp1.write('variables="Iteration""Time(s)""Res1""Res2""Res3"\n')
 
     fp2 = open("cavity.dat", "w")
     fp2.write('TITLE = "Cavity Field Data"\n')
