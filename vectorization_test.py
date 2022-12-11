@@ -974,57 +974,56 @@ def point_Jacobi():
     # !************************************************************** */
     
     # Copied from time-step computaion function -----
-    uvel2 = uold[:, :, 1]**2 + uold[:, :, 2]**2
+    uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = u[1:imax - 1, 1:jmax - 1, 2]**2
     vel2ref = uinf**2
-    temp_rkappa_array = np.zeros((imax, jmax)) # added variable to compare arrays
-    temp_rkappa_array[1:imax - 1, 1:jmax - 1] = vel2ref*rkappa
-    beta2 = np.zeros((imax, jmax))
-    beta2[1:imax - 1, 1:jmax - 1] = np.maximum(uvel2[1:imax - 1, 1:jmax - 1], temp_rkappa_array[1:imax - 1, 1:jmax - 1])
+    temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
+    temp_rkappa_array[:, :] = vel2ref*rkappa
+    beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
     # -----
     # using local timestepping
     dt = dtmin
     # -----  
-    if n == ninit:
-        for j in range(1, jmax - 1, 1):
-            for i in range(1, imax - 1, 1):
-                dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
-                dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
-                dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
-                dpdy = (uold[i, j + 1, 0] - uold[i, j - 1, 0])/(2*dy)
-                dudy = (uold[i, j + 1, 1] - uold[i, j - 1, 1])/(2*dy)
-                dvdy = (uold[i, j + 1, 2] - uold[i, j - 1, 2])/(2*dy)
-                d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/(dx**2)
-                d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/(dx**2)
-                d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/(dy**2)
-                d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/(dy**2)
-                # ----- continuity equation -----
-                u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) - artviscx[i,j] - artviscy[i,j] - s[i, j, 0])
-                # ----- x momentum equation -----
-                u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
-                # ----- y momentum equation -----
-                u[i, j, 2] = uold[i, j, 2] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dvdx + uold[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
-    else:
+    # if n == ninit:
+    #     for j in range(1, jmax - 1, 1):
+    #         for i in range(1, imax - 1, 1):
+    #             dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
+    #             dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
+    #             dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
+    #             dpdy = (uold[i, j + 1, 0] - uold[i, j - 1, 0])/(2*dy)
+    #             dudy = (uold[i, j + 1, 1] - uold[i, j - 1, 1])/(2*dy)
+    #             dvdy = (uold[i, j + 1, 2] - uold[i, j - 1, 2])/(2*dy)
+    #             d2udx2 = (uold[i + 1, j, 1] - 2*uold[i, j, 1] + uold[i - 1, j, 1])/(dx**2)
+    #             d2vdx2 = (uold[i + 1, j, 2] - 2*uold[i, j, 2] + uold[i - 1, j, 2])/(dx**2)
+    #             d2udy2 = (uold[i, j + 1, 1] - 2*uold[i, j, 1] + uold[i, j - 1, 1])/(dy**2)
+    #             d2vdy2 = (uold[i, j + 1, 2] - 2*uold[i, j, 2] + uold[i, j - 1, 2])/(dy**2)
+    #             # ----- continuity equation -----
+    #             u[i, j, 0] = uold[i, j, 0] - beta2[i - 1,j - 1]*dt[i, j]*(rho*(dudx + dvdy) - artviscx[i,j] - artviscy[i,j] - s[i, j, 0])
+    #             # ----- x momentum equation -----
+    #             u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
+    #             # ----- y momentum equation -----
+    #             u[i, j, 2] = uold[i, j, 2] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dvdx + uold[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
         
-        dpdx = dudx = dvdx = d2udx2 = d2vdx2 = dpdy = dudy = dvdy = d2udy2 = d2vdy2 = np.zeros((imax, jmax))
+    dpdx = dudx = dvdx = d2udx2 = d2vdx2 = dpdy = dudy = dvdy = d2udy2 = d2vdy2 = np.zeros((imax - 2, jmax - 2))
     
-        for i in np.arange(imax - 2, 0, -1):
-            dpdx[i, 1:jmax - 1] = (uold[i + 1, 1:jmax - 1, 0] - uold[i - 1, 1:jmax - 1, 0])/(2*dx)
-            dudx[i, 1:jmax - 1] = (uold[i + 1, 1:jmax - 1, 1] - uold[i - 1, 1:jmax - 1, 1])/(2*dx)
-            dvdx[i, 1:jmax - 1] = (uold[i + 1, 1:jmax - 1, 2] - uold[i - 1, 1:jmax - 1, 2])/(2*dx)
-            d2udx2[i, 1:jmax - 1] = (uold[i + 1, 1:jmax - 1, 1] - 2*uold[i, 1:jmax - 1, 1] + uold[i - 1, 1:jmax - 1, 1])/(dx**2)
-            d2vdx2[i, 1:jmax - 1] = (uold[i + 1, 1:jmax - 1, 2] - 2*uold[i, 1:jmax - 1, 2] + uold[i - 1, 1:jmax - 1, 2])/(dx**2)
-        
-        for j in np.arange(jmax - 2, 0, -1):
-            dpdy[1:imax - 1, j] = (uold[1:imax - 1, j + 1, 0] - uold[1:imax - 1, j - 1, 0])/(2*dy)
-            dudy[1:imax - 1, j] = (uold[1:imax - 1, j + 1, 1] - uold[1:imax - 1, j - 1, 1])/(2*dy)
-            dvdy[1:imax - 1, j] = (uold[1:imax - 1, j + 1, 2] - uold[1:imax - 1, j - 1, 2])/(2*dy)
-            d2udy2[1:imax - 1, j] = (uold[1:imax - 1, j + 1, 1] - 2*uold[1:imax - 1, j, 1] + uold[1:imax - 1, j - 1, 1])/(dy**2)
-            d2vdy2[1:imax - 1, j] = (uold[1:imax - 1, j + 1, 2] - 2*uold[1:imax - 1, j, 2] + uold[1:imax - 1, j - 1, 2])/(dy**2)
-        
-        u[1:imax - 1, 1:jmax - 1, 0] = uold[1:imax - 1, 1:jmax - 1, 0] - beta2[1:imax - 1, 1:jmax - 1]*dt[1:imax - 1, 1:jmax - 1]*(rho*(dudx[1:imax - 1, 1:jmax - 1] + dvdy[1:imax - 1, 1:jmax - 1]) - artviscx[1:imax - 1, 1:jmax - 1] - artviscy[1:imax - 1, 1:jmax - 1] - s[1:imax - 1, 1:jmax - 1, 0])
-        u[1:imax - 1, 1:jmax - 1, 1] = uold[1:imax - 1, 1:jmax - 1, 1] - dt[1:imax - 1, 1:jmax - 1]*rhoinv*(rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dudx[1:imax - 1, 1:jmax - 1] + uold[1:imax - 1, 1:jmax - 1, 2]*dudy[1:imax - 1, 1:jmax - 1]) + dpdx[1:imax - 1, 1:jmax - 1] - rmu*(d2udx2[1:imax - 1, 1:jmax - 1] + d2udy2[1:imax - 1, 1:jmax - 1]) - s[1:imax - 1, 1:jmax - 1, 1])
-        u[1:imax - 1, 1:jmax - 1, 2] = uold[1:imax - 1, 1:jmax - 1, 2] - dt[1:imax - 1, 1:jmax - 1]*rhoinv*(rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dvdx[1:imax - 1, 1:jmax - 1] + uold[1:imax - 1, 1:jmax - 1, 2]*dvdy[1:imax - 1, 1:jmax - 1]) + dpdy[1:imax - 1, 1:jmax - 1] - rmu*(d2vdx2[1:imax - 1, 1:jmax - 1] + d2vdy2[1:imax - 1, 1:jmax - 1]) - s[1:imax - 1, 1:jmax - 1, 2])
+    for i in np.arange(0, imax - 2):
+        dpdx[i, :] = (uold[i + 2, 1:jmax - 1, 0] - uold[i, 1:jmax - 1, 0])/(2*dx)
+        dudx[i, :] = (uold[i + 2, 1:jmax - 1, 1] - uold[i, 1:jmax - 1, 1])/(2*dx)
+        dvdx[i, :] = (uold[i + 2, 1:jmax - 1, 2] - uold[i, 1:jmax - 1, 2])/(2*dx)
+        d2udx2[i, :] = (uold[i + 2, 1:jmax - 1, 1] - 2*uold[i + 1, 1:jmax - 1, 1] + uold[i, 1:jmax - 1, 1])/(dx**2)
+        d2vdx2[i, :] = (uold[i + 2, 1:jmax - 1, 2] - 2*uold[i + 1, 1:jmax - 1, 2] + uold[i, 1:jmax - 1, 2])/(dx**2)
     
+    for j in np.arange(0, jmax - 2):
+        dpdy[:, j] = (uold[1:imax - 1, j + 2, 0] - uold[1:imax - 1, j, 0])/(2*dy)
+        dudy[:, j] = (uold[1:imax - 1, j + 2, 1] - uold[1:imax - 1, j, 1])/(2*dy)
+        dvdy[:, j] = (uold[1:imax - 1, j + 2, 2] - uold[1:imax - 1, j, 2])/(2*dy)
+        d2udy2[:, j] = (uold[1:imax - 1, j + 2, 1] - 2*uold[1:imax - 1, j + 1, 1] + uold[1:imax - 1, j, 1])/(dy**2)
+        d2vdy2[:, j] = (uold[1:imax - 1, j + 2, 2] - 2*uold[1:imax - 1, j + 1, 2] + uold[1:imax - 1, j, 2])/(dy**2)
+    
+    u[1:imax - 1, 1:jmax - 1, 0] = uold[1:imax - 1, 1:jmax - 1, 0] - beta2*dt[1:imax - 1, 1:jmax - 1]*(rho*(dudx + dvdy) - artviscx[1:imax - 1, 1:jmax - 1] - artviscy[1:imax - 1, 1:jmax - 1] - s[1:imax - 1, 1:jmax - 1, 0])
+    u[1:imax - 1, 1:jmax - 1, 1] = uold[1:imax - 1, 1:jmax - 1, 1] - dt[1:imax - 1, 1:jmax - 1]*rhoinv*(rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dudx + uold[1:imax - 1, 1:jmax - 1, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[1:imax - 1, 1:jmax - 1, 1])
+    u[1:imax - 1, 1:jmax - 1, 2] = uold[1:imax - 1, 1:jmax - 1, 2] - dt[1:imax - 1, 1:jmax - 1]*rhoinv*(rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dvdx + uold[1:imax - 1, 1:jmax - 1, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[1:imax - 1, 1:jmax - 1, 2])
+
 # ************************************************************************
 
 
