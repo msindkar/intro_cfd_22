@@ -1126,9 +1126,9 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
         d2udy2[1:imax - 1, j] = (u[1:imax - 1, j + 1, 1] - 2*u[1:imax - 1, j, 1] + u[1:imax - 1, j - 1, 1])/(dy**2)
         d2vdy2[1:imax - 1, j] = (u[1:imax - 1, j + 1, 2] - 2*u[1:imax - 1, j, 2] + u[1:imax - 1, j - 1, 2])/(dy**2)
     
-    r2[:, :, 0] = rho*(dudx + dvdy) - artviscx - artviscy - s
-    r2[:, :, 1] = rho*(uold[:, :, 1]*dudx + uold[:, :, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s
-    r2[:, :, 2] = rho*(uold[:, :, 1]*dvdx + uold[:, :, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s
+    r2[1:imax - 1, 1:jmax - 1, 0] = rho*(dudx[1:imax - 1, 1:jmax - 1] + dvdy[1:imax - 1, 1:jmax - 1]) - artviscx[1:imax - 1, 1:jmax - 1] - artviscy[1:imax - 1, 1:jmax - 1] - s[1:imax - 1, 1:jmax - 1, 0]
+    r2[1:imax - 1, 1:jmax - 1, 1] = rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dudx[1:imax - 1, 1:jmax - 1] + uold[1:imax - 1, 1:jmax - 1, 2]*dudy[1:imax - 1, 1:jmax - 1]) + dpdx[1:imax - 1, 1:jmax - 1] - rmu*(d2udx2[1:imax - 1, 1:jmax - 1] + d2udy2[1:imax - 1, 1:jmax - 1]) - s[1:imax - 1, 1:jmax - 1, 1]
+    r2[1:imax - 1, 1:jmax - 1, 2] = rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dvdx[1:imax - 1, 1:jmax - 1] + uold[1:imax - 1, 1:jmax - 1, 2]*dvdy[1:imax - 1, 1:jmax - 1]) + dpdy[1:imax - 1, 1:jmax - 1] - rmu*(d2vdx2[1:imax - 1, 1:jmax - 1] + d2vdy2[1:imax - 1, 1:jmax - 1]) - s[1:imax - 1, 1:jmax - 1, 2]
     
     if n == ninit:
         init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
