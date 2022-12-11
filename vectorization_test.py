@@ -69,7 +69,7 @@ six = 6.0
 # -------- User sets inputs here  --------
 
 nmax = 30            # Maximum number of iterations
-iterout = 10            # Number of time steps between solution output
+iterout = 500            # Number of time steps between solution output
 imms = 0                  # Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise
 isgs = 0                  # Symmetric Gauss-Seidel  flag: = 1 for SGS, = 0 for point Jacobi
 # Restart flag: = 1 for restart (file 'restart.in', = 0 for initial run
@@ -1149,8 +1149,8 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
         d2vdy2[:, j] = (uold[1:imax - 1, j + 2, 2] - 2*uold[1:imax - 1, j + 1, 2] + uold[1:imax - 1, j, 2])/(dy**2)
     
     r2[:, :, 0] = rho*(dudx + dvdy) - artviscx[1:imax - 1, 1:jmax - 1] - artviscy[1:imax - 1, 1:jmax - 1] - s[1:imax - 1, 1:jmax - 1, 0]
-    r2[:, :, 1] = rho*(uold[1:imax - 1, 1:jmax - 1]*dudx + uold[1:imax - 1, 1:jmax - 1]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[1:imax - 1, 1:jmax - 1, 1]
-    r2[:, :, 2] = rho*(uold[1:imax - 1, 1:jmax - 1]*dvdx + uold[1:imax - 1, 1:jmax - 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[1:imax - 1, 1:jmax - 1, 2]
+    r2[:, :, 1] = rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dudx + uold[1:imax - 1, 1:jmax - 1, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[1:imax - 1, 1:jmax - 1, 1]
+    r2[:, :, 2] = rho*(uold[1:imax - 1, 1:jmax - 1, 1]*dvdx + uold[1:imax - 1, 1:jmax - 1, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[1:imax - 1, 1:jmax - 1, 2]
     
     if n == ninit:
         init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/((imax - 2)*(jmax - 2)))
@@ -1179,7 +1179,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
 
     # Write header for iterative residuals every 200 iterations
     if n % 200 == 0 or n == ninit:
-        print("Iter."+" "+"Time (s)"+" "+"dt (s)"+" " +
+        print("Time (s)"+" "+"Iter."+" "+"dt (s)"+" " +
               "Continuity"+" "+"x-Momentum"+" "+"y-Momentum\n")
 
     return res, resinit, conv
