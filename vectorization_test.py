@@ -1179,7 +1179,7 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
 
     # Write header for iterative residuals every 200 iterations
     if n % 200 == 0 or n == ninit:
-        print("Time (s)"+" "+"Iter."+" "+"dt (s)"+" " +
+        print("Iter."+" "+"Time (s)"+" "+"dt (s)"+" " +
               "Continuity"+" "+"x-Momentum"+" "+"y-Momentum\n")
 
     return res, resinit, conv
