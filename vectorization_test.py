@@ -766,36 +766,36 @@ def Compute_Artificial_Viscosity():
     # artviscy[1,1] = 2*artviscy[2, 1] - artviscy[3, 1] # lower left corner point
 
     # Copied from time-step computaion function -----
-    uvel2 = np.zeros((imax, jmax))
-    vvel2 = np.zeros((imax, jmax))
-    uvel2[1:imax - 1, 1:jmax - 1] = u[1:imax - 1, 1:jmax - 1, 1]**2
-    vvel2[1:imax - 1, 1:jmax - 1] = u[1:imax - 1, 1:jmax - 1, 2]**2
+    uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = u[1:imax - 1, 1:jmax - 1, 2]**2
     vel2ref = uinf**2
-    temp_rkappa_array = np.zeros((imax, jmax)) # added variable to compare arrays
-    temp_rkappa_array[1:imax - 1, 1:jmax - 1] = vel2ref*rkappa
-    beta2 = np.zeros((imax, jmax))
-    beta2[1:imax - 1, 1:jmax - 1] = np.maximum(uvel2[1:imax - 1, 1:jmax - 1] + vvel2[1:imax - 1, 1:jmax - 1], temp_rkappa_array[1:imax - 1, 1:jmax - 1])
-    lambda_x = np.zeros((imax, jmax))
-    lambda_y = np.zeros((imax, jmax))
-    lambda_x[1:imax - 1, 1:jmax - 1] = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 1]) + np.sqrt(uvel2[1:imax - 1, 1:jmax - 1] + four*beta2[1:imax - 1, 1:jmax - 1]))
-    lambda_y[1:imax - 1, 1:jmax - 1] = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2[1:imax - 1, 1:jmax - 1] + four*beta2[1:imax - 1, 1:jmax - 1]))
+    temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
+    temp_rkappa_array[:, :] = vel2ref*rkappa
+    beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
+    lambda_x = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 1]) + np.sqrt(uvel2 + four*beta2))
+    lambda_y = half*(np.abs(u[1:imax - 1, 1:jmax - 1, 2]) + np.sqrt(vvel2 + four*beta2))
     # -----
     
     ghost_pres = np.zeros((imax + 2, jmax + 2))
     ghost_pres[1:imax + 1, 1:jmax + 1] = u[:, :, 0]
     ghost_pres[1:imax + 1, jmax + 1] = 2*ghost_pres[1:imax + 1, jmax] - ghost_pres[1:imax + 1, jmax - 1] # upper wall
+    
     ghost_pres[1:imax + 1, 0] = 2*ghost_pres[1:imax + 1, 1] - ghost_pres[1:imax + 1, 2] # bottom wall
-    ghost_pres[0, :] = 2*ghost_pres[1, :] - ghost_pres[2, :] # left wall
-    ghost_pres[imax + 1, :] = 2*ghost_pres[imax, :] - ghost_pres[imax - 1, :] # right wall
     
-    d4pdx4, d4pdy4 = np.zeros((imax, jmax)), np.zeros((imax, jmax))
+    ghost_pres[0, 1:jmax + 1] = 2*ghost_pres[1, 1:jmax + 1] - ghost_pres[2, 1:jmax + 1] # left wall
+    
+    ghost_pres[imax + 1, 1:jmax + 1] = 2*ghost_pres[imax, 1:jmax + 1] - ghost_pres[imax - 1, 1:jmax + 1] # right wall
+    
+    d4pdx4 = np.zeros((imax - 2, jmax - 2))
+    d4pdy4 = np.zeros((imax - 2, jmax - 2))
+    
     for i in np.arange(2, imax):
-        d4pdx4[i - 1, 1:jmax - 1] = (ghost_pres[i + 2, 1:jmax - 1] - 4*ghost_pres[i + 1, 1:jmax - 1] + 6*ghost_pres[i, 1:jmax - 1] - 4*ghost_pres[i - 1, 1:jmax - 1] + ghost_pres[i - 2, 1:jmax - 1])/(dx**4)
+        d4pdx4[i - 2, :] = (ghost_pres[i + 2, 2:jmax] - 4*ghost_pres[i + 1, 2:jmax] + 6*ghost_pres[i, 2:jmax] - 4*ghost_pres[i - 1, 2:jmax] + ghost_pres[i - 2, 2:jmax])/(dx**4)
     for j in np.arange(2, jmax):
-        d4pdy4[1:imax - 1, j - 1] = (ghost_pres[1:imax - 1, j + 2] - 4*ghost_pres[1:imax - 1, j + 1] + 6*ghost_pres[1:imax - 1, j] - 4*ghost_pres[1:imax - 1, j - 1] + ghost_pres[1:imax - 1, j - 2])/(dy**4)
+        d4pdy4[:, j - 2] = (ghost_pres[2:imax, j + 2] - 4*ghost_pres[2:imax, j + 1] + 6*ghost_pres[2:imax, j] - 4*ghost_pres[2:imax, j - 1] + ghost_pres[2:imax, j - 2])/(dy**4)
     
-    artviscx[1:imax - 1, 1:jmax - 1] = -((lambda_x[1:imax - 1, 1:jmax - 1]*Cx*(dx**3))/beta2[1:imax - 1, 1:jmax - 1])*d4pdx4[1:imax - 1, 1:jmax - 1]
-    artviscy[1:imax - 1, 1:jmax - 1] = -((lambda_y[1:imax - 1, 1:jmax - 1]*Cy*(dy**3))/beta2[1:imax - 1, 1:jmax - 1])*d4pdy4[1:imax - 1, 1:jmax - 1]
+    artviscx[1:imax - 1, 1:jmax - 1] = -((lambda_x*Cx*(dx**3))/beta2)*d4pdx4
+    artviscy[1:imax - 1, 1:jmax - 1] = -((lambda_y*Cy*(dy**3))/beta2)*d4pdy4
 
 # ************************************************************************
 
