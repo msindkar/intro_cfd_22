@@ -1004,7 +1004,18 @@ def point_Jacobi():
     #             # ----- y momentum equation -----
     #             u[i, j, 2] = uold[i, j, 2] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dvdx + uold[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
         
-    dpdx = dudx = dvdx = d2udx2 = d2vdx2 = dpdy = dudy = dvdy = d2udy2 = d2vdy2 = np.zeros((imax - 2, jmax - 2))
+    # dpdx = dudx = dvdx = d2udx2 = d2vdx2 = dpdy = dudy = dvdy = d2udy2 = d2vdy2 = np.zeros((imax - 2, jmax - 2))
+    
+    dpdx = np.zeros((imax - 2, jmax - 2))
+    dudx = np.zeros((imax - 2, jmax - 2))
+    dvdx = np.zeros((imax - 2, jmax - 2))
+    d2udx2 = np.zeros((imax - 2, jmax - 2))
+    d2vdy2 = np.zeros((imax - 2, jmax - 2))
+    dpdy = np.zeros((imax - 2, jmax - 2))
+    dudy = np.zeros((imax - 2, jmax - 2))
+    dvdy = np.zeros((imax - 2, jmax - 2))
+    d2udy2 = np.zeros((imax - 2, jmax - 2))
+    d2vdx2 = np.zeros((imax - 2, jmax - 2))
     
     for i in np.arange(0, imax - 2):
         dpdx[i, :] = (uold[i + 2, 1:jmax - 1, 0] - uold[i, 1:jmax - 1, 0])/(2*dx)
@@ -1109,38 +1120,49 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
     #         r2[i - 1, j - 1, 1] = rho*(u[i, j, 1]*dudx + u[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1]
     #         r2[i - 1, j - 1, 2] = rho*(u[i, j, 1]*dvdx + u[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2] # ----- steady portion of discretization, copied from point-jacobi
     
-    r2 = np.zeros((imax, jmax, neq))
-    dpdx = dudx = dvdx = d2udx2 = d2vdx2 = dpdy = dudy = dvdy = d2udy2 = d2vdy2 = np.zeros((imax, jmax))   
-
-    for i in np.arange(1, imax - 1):
-        dpdx[i, 1:jmax - 1] = (u[i + 1, 1:jmax - 1, 0] - u[i - 1, 1:jmax - 1, 0])/(2*dx)
-        dudx[i, 1:jmax - 1] = (u[i + 1, 1:jmax - 1, 1] - u[i - 1, 1:jmax - 1, 1])/(2*dx)
-        dvdx[i, 1:jmax - 1] = (u[i + 1, 1:jmax - 1, 2] - u[i - 1, 1:jmax - 1, 2])/(2*dx)
-        d2udx2[i, 1:jmax - 1] = (u[i + 1, 1:jmax - 1, 1] - 2*u[i, 1:jmax - 1, 1] + u[i - 1, 1:jmax - 1, 1])/(dx**2)
-        d2vdx2[i, 1:jmax - 1] = (u[i + 1, 1:jmax - 1, 2] - 2*u[i, 1:jmax - 1, 2] + u[i - 1, 1:jmax - 1, 2])/(dx**2)
-        
-    for j in np.arange(1, jmax - 1):
-        dpdy[1:imax - 1, j] = (u[1:imax - 1, j + 1, 0] - u[1:imax - 1, j - 1, 0])/(2*dy)
-        dudy[1:imax - 1, j] = (u[1:imax - 1, j + 1, 1] - u[1:imax - 1, j - 1, 1])/(2*dy)
-        dvdy[1:imax - 1, j] = (u[1:imax - 1, j + 1, 2] - u[1:imax - 1, j - 1, 2])/(2*dy)
-        d2udy2[1:imax - 1, j] = (u[1:imax - 1, j + 1, 1] - 2*u[1:imax - 1, j, 1] + u[1:imax - 1, j - 1, 1])/(dy**2)
-        d2vdy2[1:imax - 1, j] = (u[1:imax - 1, j + 1, 2] - 2*u[1:imax - 1, j, 2] + u[1:imax - 1, j - 1, 2])/(dy**2)
+    r2 = np.zeros((imax - 2, jmax - 2, neq))
+    # dpdx = dudx = dvdx = d2udx2 = d2vdx2 = dpdy = dudy = dvdy = d2udy2 = d2vdy2 = np.zeros((imax, jmax))
     
-    r2[:, :, 0] = rho*(dudx + dvdy) - artviscx - artviscy - s[:, :, 0]
-    r2[:, :, 1] = rho*(uold[:, :, 1]*dudx + uold[:, :, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[:, :, 1]
-    r2[:, :, 2] = rho*(uold[:, :, 1]*dvdx + uold[:, :, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[:, :, 2]
+    dpdx = np.zeros((imax - 2, jmax - 2))
+    dudx = np.zeros((imax - 2, jmax - 2))
+    dvdx = np.zeros((imax - 2, jmax - 2))
+    d2udx2 = np.zeros((imax - 2, jmax - 2))
+    d2vdy2 = np.zeros((imax - 2, jmax - 2))
+    dpdy = np.zeros((imax - 2, jmax - 2))
+    dudy = np.zeros((imax - 2, jmax - 2))
+    dvdy = np.zeros((imax - 2, jmax - 2))
+    d2udy2 = np.zeros((imax - 2, jmax - 2))
+    d2vdx2 = np.zeros((imax - 2, jmax - 2))
+    
+    for i in np.arange(0, imax - 2):
+        dpdx[i, :] = (uold[i + 2, 1:jmax - 1, 0] - uold[i, 1:jmax - 1, 0])/(2*dx)
+        dudx[i, :] = (uold[i + 2, 1:jmax - 1, 1] - uold[i, 1:jmax - 1, 1])/(2*dx)
+        dvdx[i, :] = (uold[i + 2, 1:jmax - 1, 2] - uold[i, 1:jmax - 1, 2])/(2*dx)
+        d2udx2[i, :] = (uold[i + 2, 1:jmax - 1, 1] - 2*uold[i + 1, 1:jmax - 1, 1] + uold[i, 1:jmax - 1, 1])/(dx**2)
+        d2vdx2[i, :] = (uold[i + 2, 1:jmax - 1, 2] - 2*uold[i + 1, 1:jmax - 1, 2] + uold[i, 1:jmax - 1, 2])/(dx**2)
+    
+    for j in np.arange(0, jmax - 2):
+        dpdy[:, j] = (uold[1:imax - 1, j + 2, 0] - uold[1:imax - 1, j, 0])/(2*dy)
+        dudy[:, j] = (uold[1:imax - 1, j + 2, 1] - uold[1:imax - 1, j, 1])/(2*dy)
+        dvdy[:, j] = (uold[1:imax - 1, j + 2, 2] - uold[1:imax - 1, j, 2])/(2*dy)
+        d2udy2[:, j] = (uold[1:imax - 1, j + 2, 1] - 2*uold[1:imax - 1, j + 1, 1] + uold[1:imax - 1, j, 1])/(dy**2)
+        d2vdy2[:, j] = (uold[1:imax - 1, j + 2, 2] - 2*uold[1:imax - 1, j + 1, 2] + uold[1:imax - 1, j, 2])/(dy**2)
+    
+    r2[:, :, 0] = rho*(dudx + dvdy) - artviscx[1:imax - 1, 1:jmax - 1] - artviscy[1:imax - 1, 1:jmax - 1] - s[1:imax - 1, 1:jmax - 1, 0]
+    r2[:, :, 1] = rho*(uold[1:imax - 1, 1:jmax - 1]*dudx + uold[1:imax - 1, 1:jmax - 1]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[1:imax - 1, 1:jmax - 1, 1]
+    r2[:, :, 2] = rho*(uold[1:imax - 1, 1:jmax - 1]*dvdx + uold[1:imax - 1, 1:jmax - 1]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[1:imax - 1, 1:jmax - 1, 2]
     
     if n == ninit:
-        init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
+        init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/((imax - 2)*(jmax - 2)))
     
     if n == ninit + 1:
         #init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
-        init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))
-        init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))
+        init_norm[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/((imax - 2)*(jmax - 2)))
+        init_norm[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/((imax - 2)*(jmax - 2)))
     
-    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))/init_norm[0]
-    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/(imax*jmax))/init_norm[1]
-    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/(imax*jmax))/init_norm[2]
+    res[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/((imax - 2)*(jmax - 2)))/init_norm[0]
+    res[1] = np.sqrt(np.sum(np.square(r2[:, :, 1]))/((imax - 2)*(jmax - 2)))/init_norm[1]
+    res[2] = np.sqrt(np.sum(np.square(r2[:, :, 2]))/((imax - 2)*(jmax - 2)))/init_norm[2]
     
     if n == ninit:
         res = resinit
@@ -1187,15 +1209,15 @@ def Discretization_Error_Norms(rL1norm, rL2norm, rLinfnorm):
         # !************ADD CODING HERE FOR INTRO CFD STUDENTS************
         #!***************************************************************
         
-        DE = np.abs(ummsArray - u)
+        DE = np.abs(ummsArray[1:imax - 1, 1:jmax - 1, :] - u[1:imax - 1, 1:jmax - 1, :])
         
-        rL1norm[0] = np.sum(DE[:, :, 0])/(imax*jmax)
-        rL1norm[1] = np.sum(DE[:, :, 1])/(imax*jmax)
-        rL1norm[2] = np.sum(DE[:, :, 2])/(imax*jmax)
+        rL1norm[0] = np.sum(DE[:, :, 0])/((imax - 2)*(jmax - 2))
+        rL1norm[1] = np.sum(DE[:, :, 1])/((imax - 2)*(jmax - 2))
+        rL1norm[2] = np.sum(DE[:, :, 2])/((imax - 2)*(jmax - 2))
         
-        rL2norm[0] = np.sqrt(np.sum(DE[:, :, 0]**2)/(imax*jmax))
-        rL2norm[1] = np.sqrt(np.sum(DE[:, :, 1]**2)/(imax*jmax))
-        rL2norm[2] = np.sqrt(np.sum(DE[:, :, 2]**2)/(imax*jmax))
+        rL2norm[0] = np.sqrt(np.sum(DE[:, :, 0]**2)/((imax - 2)*(jmax - 2)))
+        rL2norm[1] = np.sqrt(np.sum(DE[:, :, 1]**2)/((imax - 2)*(jmax - 2)))
+        rL2norm[2] = np.sqrt(np.sum(DE[:, :, 2]**2)/((imax - 2)*(jmax - 2)))
         
         rLinfnorm[0] = np.max(DE[:, :, 0])
         rLinfnorm[1] = np.max(DE[:, :, 1])
