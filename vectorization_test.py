@@ -70,7 +70,7 @@ six = 6.0
 
 nmax = 30            # Maximum number of iterations
 iterout = 10            # Number of time steps between solution output
-imms = 0                  # Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise
+imms = 1                  # Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise
 isgs = 0                  # Symmetric Gauss-Seidel  flag: = 1 for SGS, = 0 for point Jacobi
 # Restart flag: = 1 for restart (file 'restart.in', = 0 for initial run
 irstr = 0
@@ -85,7 +85,7 @@ Cx = 0.01               # Parameter for 4th order artificial viscosity in x
 Cy = 0.01               # Parameter for 4th order artificial viscosity in y
 toler = 1.e-10          # Tolerance for iterative residual convergence
 rkappa = 0.1            # Time derivative preconditioning constant
-Re = 100.0              # Reynolds number = rho*Uinf*L/rmu
+Re = 1.0              # Reynolds number = rho*Uinf*L/rmu
 # Initial pressure (N/m^2) -> from MMS value at cavity center
 pinf = 0.801333844662
 uinf = 1.0              # Lid velocity (m/s)
@@ -1126,9 +1126,9 @@ def check_iterative_convergence(n, res, resinit, ninit, rtime, dtmin):
         d2udy2[1:imax - 1, j] = (u[1:imax - 1, j + 1, 1] - 2*u[1:imax - 1, j, 1] + u[1:imax - 1, j - 1, 1])/(dy**2)
         d2vdy2[1:imax - 1, j] = (u[1:imax - 1, j + 1, 2] - 2*u[1:imax - 1, j, 2] + u[1:imax - 1, j - 1, 2])/(dy**2)
     
-    r2[:, :, 0] = rho*(dudx + dvdy) - artviscx - artviscy - s[:, :, 0]
-    r2[:, :, 1] = rho*(uold[:, :, 1]*dudx + uold[:, :, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[:, :, 1]
-    r2[:, :, 2] = rho*(uold[:, :, 1]*dvdx + uold[:, :, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[:, :, 2]
+    r2[:, :, 0] = rho*(dudx + dvdy) - artviscx - artviscy - s
+    r2[:, :, 1] = rho*(uold[:, :, 1]*dudx + uold[:, :, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s
+    r2[:, :, 2] = rho*(uold[:, :, 1]*dvdx + uold[:, :, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s
     
     if n == ninit:
         init_norm[0] = np.sqrt(np.sum(np.square(r2[:, :, 0]))/(imax*jmax))
