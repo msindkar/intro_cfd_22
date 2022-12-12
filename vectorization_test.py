@@ -833,22 +833,21 @@ def SGS_forward_sweep():
     # !************************************************************** */
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
-    
+
     # Copied from time-step computaion function -----
-    uvel2 = uold[1:imax - 1, 1:jmax - 1, 1]**2
-    vvel2 = uold[1:imax - 1, 1:jmax - 1, 2]**2
+    uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = u[1:imax - 1, 1:jmax - 1, 2]**2
     vel2ref = uinf**2
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
     # -----
-    # ----- code copied from point jacobi -----
-    # -----
     # using local timestepping
     dt = dtmin
     # -----  
-    for j in range(1, jmax - 1, 1):
-        for i in range(1, imax - 1, 1):
+    
+    for j in np.arange(1,jmax - 1):
+        for i in np.arange(1, imax - 1):
             dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
             dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
             dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
@@ -865,6 +864,10 @@ def SGS_forward_sweep():
             u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
             # ----- y momentum equation -----
             u[i, j, 2] = uold[i, j, 2] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dvdx + uold[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
+            uold[i, j, 0] = u[i, j, 0]
+            uold[i, j, 1] = u[i, j, 1]
+            uold[i, j, 2] = u[i, j, 2]
+            
 # ************************************************************************
 
 
@@ -902,23 +905,20 @@ def SGS_backward_sweep():
     # !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     # !************************************************************** */
     
-    uold = copy.deepcopy(u)
-    
     # Copied from time-step computaion function -----
-    uvel2 = uold[1:imax - 1, 1:jmax - 1, 1]**2
-    vvel2 = uold[1:imax - 1, 1:jmax - 1, 2]**2
+    uvel2 = u[1:imax - 1, 1:jmax - 1, 1]**2
+    vvel2 = u[1:imax - 1, 1:jmax - 1, 2]**2
     vel2ref = uinf**2
     temp_rkappa_array = np.zeros((imax - 2, jmax - 2)) # added variable to compare arrays
     temp_rkappa_array[:, :] = vel2ref*rkappa
     beta2 = np.maximum(uvel2 + vvel2, temp_rkappa_array)
     # -----
-    # ----- code copied from point jacobi -----
-    # -----
     # using local timestepping
     dt = dtmin
+    # -----  
     
-    for j in range(jmax - 2, 0, -1):
-        for i in range(imax - 2, 0, -1):
+    for i in np.arange(imax - 2, 0, -1):
+        for j in np.arange(jmax - 2, 0, -1):
             dpdx = (uold[i + 1, j, 0] - uold[i - 1, j, 0])/(2*dx)
             dudx = (uold[i + 1, j, 1] - uold[i - 1, j, 1])/(2*dx)
             dvdx = (uold[i + 1, j, 2] - uold[i - 1, j, 2])/(2*dx)
@@ -935,6 +935,9 @@ def SGS_backward_sweep():
             u[i, j, 1] = uold[i, j, 1] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dudx + uold[i, j, 2]*dudy) + dpdx - rmu*(d2udx2 + d2udy2) - s[i, j, 1])
             # ----- y momentum equation -----
             u[i, j, 2] = uold[i, j, 2] - dt[i, j]*rhoinv*(rho*(uold[i, j, 1]*dvdx + uold[i, j, 2]*dvdy) + dpdy - rmu*(d2vdx2 + d2vdy2) - s[i, j, 2])
+            uold[i, j, 0] = u[i, j, 0]
+            uold[i, j, 1] = u[i, j, 1]
+            uold[i, j, 2] = u[i, j, 2]
     
 # ************************************************************************
 
